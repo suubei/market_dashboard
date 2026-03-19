@@ -1,30 +1,5 @@
 [
   {
-    "date": "18/03/2026",
-    "time": "12:30",
-    "event": "PPI (MoM)  (Feb)"
-  },
-  {
-    "date": "18/03/2026",
-    "time": "18:00",
-    "event": "FOMC Economic Projections"
-  },
-  {
-    "date": "18/03/2026",
-    "time": "18:00",
-    "event": "FOMC Statement"
-  },
-  {
-    "date": "18/03/2026",
-    "time": "18:00",
-    "event": "Fed Interest Rate Decision"
-  },
-  {
-    "date": "18/03/2026",
-    "time": "18:30",
-    "event": "FOMC Press Conference"
-  },
-  {
     "date": "19/03/2026",
     "time": "12:30",
     "event": "Initial Jobless Claims"
@@ -38,5 +13,10 @@
     "date": "21/03/2026",
     "time": "14:30",
     "event": "Fed Chair Powell Speaks"
+  },
+  {
+    "date": "26/03/2026",
+    "time": "12:20",
+    "event": "Initial Jobless Claims"
   }
 ]
