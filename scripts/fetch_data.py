@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
 BENCHMARK    = "SPY"
 TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM", "DIA"]
-ATR_PERIOD   = 20
+ATR_PERIOD   = 14
 LOOKBACK     = 25
 # Fetch extra history so Wilder ATR has time to warm up
 FETCH_DAYS   = 130   # calendar days back from last trading day
