@@ -1,5 +1,5 @@
 """
-Fetch daily OHLCV data from Tiingo, compute VARS for RSP/QQQ/QQQE/IWM/DIA vs SPY,
+Fetch daily OHLCV data from Tiingo, compute VARS for all non-SPY tickers vs SPY,
 and save results to data/ for GitHub Pages to serve.
 
 VARS formula (mattishenner / Jeff Sun):
@@ -142,7 +142,7 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict, daily_chan
         "date":         date_str,
         "updated_at":   datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
         "params":       {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
-        "vars":         {k: round(v, 4) for k, v in vars_result.items()},
+        "vars":         vars_result,
         "vars_series":  vars_series,
         "daily_change": daily_changes,
     }

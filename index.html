@@ -8,14 +8,14 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:      #ffffff;
-      --surface: #f6f8fa;
-      --border:  #d0d7de;
-      --text:    #1f2328;
-      --muted:   #57606a;
-      --accent:  #0969da;
-      --pos:     #1a7f37;
-      --neg:     #cf222e;
+      --bg:     #ffffff;
+      --surface:#f6f8fa;
+      --border: #d0d7de;
+      --text:   #1f2328;
+      --muted:  #57606a;
+      --accent: #0969da;
+      --pos:    #1a7f37;
+      --neg:    #cf222e;
     }
 
     body {
@@ -26,18 +26,13 @@
       padding: 28px 15vw 56px;
     }
 
-    /* ── Header ── */
     header {
       max-width: 900px;
       margin: 0 0 28px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 16px;
     }
-    header h1 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--text);
-    }
+    header h1 { font-size: 1.25rem; font-weight: 600; }
     #meta {
       margin-top: 6px;
       font-size: 0.8rem;
@@ -48,7 +43,6 @@
     }
     #meta b { color: var(--text); }
 
-    /* ── Status banner ── */
     #status {
       max-width: 900px;
       margin: 0 0 20px;
@@ -62,17 +56,9 @@
     }
     #status.error { border-color: var(--neg); color: var(--neg); }
 
-    /* ── Main table ── */
-    #dashboard {
-      max-width: 900px;
-      margin: 0;
-      display: none;
-    }
+    #dashboard { max-width: 900px; display: none; }
 
-    .ticker-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    .ticker-table { width: 100%; border-collapse: collapse; }
 
     .col-market { width: 100px; }
     .col-index  { width: 80px; }
@@ -80,7 +66,6 @@
     .col-sts    { width: 80px; }
     .col-chg    { width: 90px; }
 
-    /* Header row */
     .ticker-table thead th {
       font-size: 0.72rem;
       font-weight: 600;
@@ -94,44 +79,14 @@
       text-align: left;
     }
     .ticker-table thead th.col-rs  { padding-left: 8px; }
-    .ticker-table thead th.col-sts { text-align: center; }
+    .ticker-table thead th.col-sts,
+    .ticker-table thead th.col-chg { text-align: center; }
 
-    .sts-cell { text-align: center; }
-    .sts-value {
-      font-size: 0.88rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
+    .ticker-row {
+      height: 32px;
+      border-top: 1px solid var(--border);
     }
-    .sts-high { color: var(--pos); }
-    .sts-low  { color: var(--neg); }
-    .sts-mid  { color: var(--muted); }
-
-    /* chg cell: bar background + text overlay */
-    .chg-cell { padding: 0 !important; }
-    .chg-wrap {
-      position: relative;
-      padding: 0 6px;
-      text-align: center;
-    }
-    .chg-wrap svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
-    .chg-text {
-      position: relative;
-      font-size: 0.88rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      color: var(--text);
-    }
-
-    /* Data rows */
-    .ticker-row { border-top: 1px solid var(--border); }
     .ticker-row:last-child { border-bottom: 1px solid var(--border); }
-
-    .ticker-row { height: 32px; }
     .ticker-row td {
       padding: 0;
       height: 32px;
@@ -142,24 +97,29 @@
 
     .market-cell { padding-right: 16px; }
     .index-cell  { padding-right: 16px; color: var(--muted); font-size: 0.85rem; }
+    .ticker-symbol { font-size: 0.88rem; font-weight: 700; }
 
-    .ticker-symbol {
+    .rs-cell { padding-left: 8px; line-height: 0; }
+    .histogram-wrap { line-height: 0; }
+    .histogram-wrap svg { display: block; width: 100%; height: 32px; }
+
+    .sts-cell { text-align: center; }
+    .sts-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .sts-high { color: var(--pos); }
+    .sts-low  { color: var(--neg); }
+    .sts-mid  { color: var(--muted); }
+
+    .chg-cell { padding: 0 !important; }
+    .chg-wrap { position: relative; padding: 0 6px; text-align: center; }
+    .chg-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .chg-text {
+      position: relative;
       font-size: 0.88rem;
-      font-weight: 700;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
       color: var(--text);
     }
 
-    .rs-cell { padding-left: 8px; line-height: 0; }
-
-    .histogram-wrap { line-height: 0; }
-    .histogram-wrap svg {
-      display: block;
-      width: 100%;
-      height: 32px;
-      overflow: visible;
-    }
-
-    /* ── Footer ── */
     footer {
       max-width: 900px;
       margin: 28px 0 0;
@@ -190,41 +150,27 @@
 <div id="dashboard">
   <table class="ticker-table">
     <colgroup>
-      <col class="col-market">
-      <col class="col-index">
-      <col class="col-rs">
-      <col class="col-sts">
-      <col class="col-chg">
+      <col class="col-market"><col class="col-index">
+      <col class="col-rs"><col class="col-sts"><col class="col-chg">
     </colgroup>
-    <thead>
-      <tr>
-        <th class="col-market">Market</th>
-        <th class="col-index">Symbol</th>
-        <th class="col-rs">1-Month RS</th>
-        <th class="col-sts">RS_STS%</th>
-        <th class="col-chg" style="text-align:center">% Daily Change</th>
-      </tr>
-    </thead>
+    <thead><tr>
+      <th class="col-market">Market</th><th class="col-index">Symbol</th>
+      <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
+      <th class="col-chg">% Daily Change</th>
+    </tr></thead>
     <tbody id="ticker-body"></tbody>
   </table>
 
-  <table class="ticker-table" style="margin-top:0">
+  <table class="ticker-table">
     <colgroup>
-      <col class="col-market">
-      <col class="col-index">
-      <col class="col-rs">
-      <col class="col-sts">
-      <col class="col-chg">
+      <col class="col-market"><col class="col-index">
+      <col class="col-rs"><col class="col-sts"><col class="col-chg">
     </colgroup>
-    <thead>
-      <tr>
-        <th class="col-market">Sub-Market</th>
-        <th class="col-index">Symbol</th>
-        <th class="col-rs">1-Month RS</th>
-        <th class="col-sts">RS_STS%</th>
-        <th class="col-chg" style="text-align:center">% Daily Change</th>
-      </tr>
-    </thead>
+    <thead><tr>
+      <th class="col-market">Sub-Market</th><th class="col-index">Symbol</th>
+      <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
+      <th class="col-chg">% Daily Change</th>
+    </tr></thead>
     <tbody id="sub-ticker-body"></tbody>
   </table>
 </div>
@@ -252,17 +198,14 @@ function toBeiJing(isoStr) {
   });
 }
 
-// ── PERCENTRANK (matches Excel's PERCENTRANK) ─────────────────────────────────
-// = count of values strictly below x / (n - 1)
+// PERCENTRANK: count of values strictly below x / (n - 1)  — matches Excel
 function percentRank(values, val) {
   const valid = values.filter(v => v !== null && !isNaN(v));
-  const n = valid.length;
-  if (n <= 1) return null;
-  const below = valid.filter(v => v < val).length;
-  return below / (n - 1);
+  if (valid.length <= 1) return null;
+  return valid.filter(v => v < val).length / (valid.length - 1);
 }
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// ── Display config ────────────────────────────────────────────────────────────
 const DISPLAY_ORDER = [
   { ticker: 'SPY',  market: 'SPY 500'  },
   { ticker: 'RSP',  market: 'RSP 500'  },
@@ -281,93 +224,73 @@ const SUB_DISPLAY_ORDER = [
   { ticker: 'IVW', market: 'S&P Large-Cap 500 Growth' },
 ];
 
-// ── SVG Histogram ─────────────────────────────────────────────────────────────
-const VB_W    = 200;   // narrow viewBox
-const VB_H    = 48;
-const ZERO_Y  = VB_H / 2;          // 24
-const MAX_BAR = ZERO_Y - 3;        // 21px max bar height
+// ── SVG: VARS histogram ───────────────────────────────────────────────────────
+const VB_W   = 200, VB_H = 48;
+const ZERO_Y = VB_H / 2;
+const MAX_BAR = ZERO_Y - 3;
 const N_BARS  = 25;
-const SLOT_W  = VB_W / N_BARS;     // 8px per slot
-const BAR_W   = SLOT_W - 2;        // 6px bar, 2px gap
-const POS_CLR  = '#1a7f37';
-const NEG_CLR  = '#cf222e';
-const LAST_POS = '#2da44e';
-const LAST_NEG = '#e5534b';
-const SPY_CLR  = '#8c959f';        // flat neutral for SPY reference
+const SLOT_W  = VB_W / N_BARS;
+const BAR_W   = SLOT_W - 2;
 
 function buildHistogramSVG(values, isSpy) {
-  const maxAbs  = isSpy ? 1 : Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
-  const maxVal  = isSpy ? 0 : Math.max(...values.filter(v => v !== null));
-  const maxIdx  = isSpy ? -1 : values.indexOf(maxVal);
+  const maxAbs = isSpy ? 1 : Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
+  const maxVal = isSpy ? 0 : Math.max(...values.filter(v => v !== null));
+  const maxIdx = isSpy ? -1 : values.indexOf(maxVal);
 
   const bars = values.map((v, i) => {
-    if (v === null || v === undefined || isNaN(v)) return '';
-    const isPos    = v >= 0;
-    const isMaxBar = i === maxIdx;
-    const barH   = maxAbs > 0 ? (Math.abs(v) / maxAbs * MAX_BAR) : 0;
-    const x      = i * SLOT_W + 1;
-    const y      = isPos ? ZERO_Y - barH : ZERO_Y;
-    const fill   = isSpy    ? SPY_CLR
-                 : isMaxBar ? (isPos ? LAST_POS : LAST_NEG)
-                             : (isPos ? POS_CLR  : NEG_CLR);
-    const tip    = `${v >= 0 ? '+' : ''}${v.toFixed(4)}`;
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}" rx="0"><title>${tip}</title></rect>`;
+    if (v == null || isNaN(v)) return '';
+    const isPos = v >= 0, isMax = i === maxIdx;
+    const barH  = Math.abs(v) / maxAbs * MAX_BAR;
+    const x = i * SLOT_W + 1;
+    const y = isPos ? ZERO_Y - barH : ZERO_Y;
+    const fill = isSpy  ? '#8c959f'
+               : isMax  ? (isPos ? '#2da44e' : '#e5534b')
+                        : (isPos ? '#1a7f37' : '#cf222e');
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v >= 0 ? '+' : ''}${v.toFixed(4)}</title></rect>`;
   }).join('');
 
   return `<svg viewBox="0 0 ${VB_W} ${VB_H}" preserveAspectRatio="none">
     <line x1="0" y1="${ZERO_Y}" x2="${VB_W}" y2="${ZERO_Y}" stroke="#d0d7de" stroke-width="0.8"/>
-    ${bars}
-  </svg>`;
+    ${bars}</svg>`;
 }
 
-// ── Daily change bar SVG ──────────────────────────────────────────────────────
-// mode: 'butterfly' | 'allPos' | 'allNeg'
+// ── SVG: daily change butterfly bar ──────────────────────────────────────────
 function buildChgBarSVG(val, mode, maxAbs) {
-  if (val === null) return '';
-  const isPos  = val >= 0;
-  const frac   = maxAbs > 0 ? Math.abs(val) / maxAbs : 0;
-  const posClr = 'rgba(26,127,55,0.18)';
-  const negClr = 'rgba(207,34,46,0.15)';
-  const fill   = isPos ? posClr : negClr;
-
+  if (val == null) return '';
+  const isPos = val >= 0;
+  const frac  = Math.abs(val) / maxAbs;
+  const fill  = isPos ? 'rgba(26,127,55,0.18)' : 'rgba(207,34,46,0.15)';
   let x, w, centerLine = '';
 
   if (mode === 'butterfly') {
-    w = frac * 50;
-    x = isPos ? 50 : 50 - w;
+    w = frac * 50; x = isPos ? 50 : 50 - w;
     centerLine = `<line x1="50" y1="0" x2="50" y2="1" stroke="#d0d7de" stroke-width="0.8"/>`;
   } else if (mode === 'allPos') {
     x = 0; w = frac * 100;
-  } else {                        // allNeg: bars extend from right
+  } else {
     w = frac * 100; x = 100 - w;
   }
 
   return `<svg viewBox="0 0 100 1" preserveAspectRatio="none">
     <rect x="${x.toFixed(2)}" y="0" width="${w.toFixed(2)}" height="1" fill="${fill}"/>
-    ${centerLine}
-  </svg>`;
+    ${centerLine}</svg>`;
 }
 
-// ── Render a section's tbody ──────────────────────────────────────────────────
-function renderSection(displayOrder, tbodyId, series, vars, changes) {
-  const tbody  = document.getElementById(tbodyId);
-  const isSPY  = t => t === 'SPY';
-
-  // Shared daily-change axis for this section
-  const allChg = displayOrder.map(({ ticker }) => changes[ticker]).filter(v => v != null);
-  const hasPos = allChg.some(v => v > 0);
-  const hasNeg = allChg.some(v => v < 0);
-  const maxAbs = Math.max(...allChg.map(Math.abs), 0.01);
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderSection(displayOrder, tbodyId, series, changes) {
+  const allChg  = displayOrder.map(({ ticker }) => changes[ticker]).filter(v => v != null);
+  const hasPos  = allChg.some(v => v > 0);
+  const hasNeg  = allChg.some(v => v < 0);
+  const maxAbs  = Math.max(...allChg.map(Math.abs), 0.01);
   const chgMode = (hasPos && hasNeg) ? 'butterfly' : hasPos ? 'allPos' : 'allNeg';
 
-  tbody.innerHTML = displayOrder.map(({ ticker, market }) => {
-    const spy    = isSPY(ticker);
-    const values = spy ? Array(25).fill(0) : (series[ticker] ?? []);
-    const svg    = buildHistogramSVG(values, spy);
+  document.getElementById(tbodyId).innerHTML = displayOrder.map(({ ticker, market }) => {
+    const isSpy  = ticker === 'SPY';
+    const values = isSpy ? Array(N_BARS).fill(0) : (series[ticker] ?? []);
 
     // RS_STS%
     let stsHtml = '<span class="sts-value sts-mid">—</span>';
-    if (!spy && values.length) {
+    if (!isSpy && values.length) {
       const pr = percentRank(values, values[values.length - 1]);
       if (pr !== null) {
         const pct = Math.round(pr * 100);
@@ -377,30 +300,17 @@ function renderSection(displayOrder, tbodyId, series, vars, changes) {
     }
 
     // % Daily Change
-    const chg    = changes[ticker] ?? null;
-    const barSvg = buildChgBarSVG(chg, chgMode, maxAbs);
-    const chgText = chg !== null ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '—';
+    const chg     = changes[ticker] ?? null;
+    const chgText = chg != null ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '—';
 
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
-      <td class="rs-cell"><div class="histogram-wrap">${svg}</div></td>
-      <td class="sts-cell" style="text-align:center">${stsHtml}</td>
-      <td class="chg-cell">
-        <div class="chg-wrap">${barSvg}<span class="chg-text">${chgText}</span></div>
-      </td>
+      <td class="rs-cell"><div class="histogram-wrap">${buildHistogramSVG(values, isSpy)}</div></td>
+      <td class="sts-cell">${stsHtml}</td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbs)}<span class="chg-text">${chgText}</span></div></td>
     </tr>`;
   }).join('');
-}
-
-// ── Render dashboard ──────────────────────────────────────────────────────────
-function renderDashboard(latest) {
-  const series  = latest.vars_series ?? {};
-  const vars    = latest.vars ?? {};
-  const changes = latest.daily_change ?? {};
-
-  renderSection(DISPLAY_ORDER,     'ticker-body',     series, vars, changes);
-  renderSection(SUB_DISPLAY_ORDER, 'sub-ticker-body', series, vars, changes);
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
@@ -416,9 +326,12 @@ function renderDashboard(latest) {
 
     document.getElementById('data-date').textContent   = latest.date;
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
-
     document.getElementById('dashboard').style.display = 'block';
-    renderDashboard(latest);
+
+    const series  = latest.vars_series  ?? {};
+    const changes = latest.daily_change ?? {};
+    renderSection(DISPLAY_ORDER,     'ticker-body',     series, changes);
+    renderSection(SUB_DISPLAY_ORDER, 'sub-ticker-body', series, changes);
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);
