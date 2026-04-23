@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 # ── Config ────────────────────────────────────────────────────────────────────
 TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
 BENCHMARK    = "SPY"
-TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM"]
+TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM", "DIA"]
 ATR_PERIOD   = 20
 LOOKBACK     = 25
 # Fetch extra history so Wilder ATR has time to warm up

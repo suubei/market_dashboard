@@ -66,18 +66,9 @@
 
     /* ── Main table ── */
     #dashboard {
-      max-width: 900px;
+      max-width: 560px;
       margin: 0 auto;
       display: none;
-    }
-
-    .section-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      margin-bottom: 12px;
     }
 
     .ticker-table {
@@ -85,55 +76,63 @@
       border-collapse: collapse;
     }
 
-    /* Column widths */
-    .col-name  { width: 70px; }
-    .col-value { width: 72px; }
-    .col-chart { /* fills rest */ }
+    .col-market { width: 160px; }
+    .col-rs     { /* fills rest */ }
 
-    .ticker-row {
-      border-top: 1px solid var(--border);
+    /* Header row */
+    .ticker-table thead th {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 0 0 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
     }
+    .ticker-table thead th.col-rs { padding-left: 8px; }
+
+    /* Data rows */
+    .ticker-row { border-top: 1px solid var(--border); }
     .ticker-row:last-child { border-bottom: 1px solid var(--border); }
 
     .ticker-row td {
-      padding: 10px 0;
+      padding: 8px 0;
       vertical-align: middle;
     }
-    .ticker-row td.col-name {
-      padding-right: 12px;
-    }
-    .ticker-row td.col-value {
-      padding-right: 16px;
-      text-align: right;
-    }
 
-    .ticker-name {
-      font-size: 0.9rem;
+    .market-cell { padding-right: 16px; }
+
+    .ticker-label {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+    }
+    .ticker-symbol {
+      font-size: 0.88rem;
       font-weight: 700;
-      letter-spacing: 0.02em;
       color: var(--text);
     }
-
+    .ticker-index {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
     .ticker-value {
-      font-size: 0.88rem;
+      margin-top: 2px;
+      font-size: 0.78rem;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
-      white-space: nowrap;
     }
-    .ticker-value.pos { color: var(--pos); }
-    .ticker-value.neg { color: var(--neg); }
+    .ticker-value.pos  { color: var(--pos); }
+    .ticker-value.neg  { color: var(--neg); }
     .ticker-value.zero { color: var(--muted); }
 
-    .histogram-cell { padding-right: 4px; }
+    .rs-cell { padding-left: 8px; }
 
-    .histogram-wrap {
-      position: relative;
-      width: 100%;
-    }
     .histogram-wrap svg {
       display: block;
       width: 100%;
-      height: 64px;
+      height: 48px;
       overflow: visible;
     }
 
@@ -166,12 +165,17 @@
 <div id="status"></div>
 
 <div id="dashboard">
-  <table class="ticker-table" id="ticker-table">
+  <table class="ticker-table">
     <colgroup>
-      <col class="col-name">
-      <col class="col-value">
-      <col class="col-chart">
+      <col class="col-market">
+      <col class="col-rs">
     </colgroup>
+    <thead>
+      <tr>
+        <th class="col-market">Market</th>
+        <th class="col-rs">1-Month RS</th>
+      </tr>
+    </thead>
     <tbody id="ticker-body"></tbody>
   </table>
 </div>
@@ -199,69 +203,85 @@ function toBeiJing(isoStr) {
   });
 }
 
-// ── SVG Histogram ─────────────────────────────────────────────────────────────
-// All histograms share the same maxAbsVal so magnitudes are comparable.
-const VB_W = 500, VB_H = 60;
-const ZERO_Y  = VB_H / 2;         // 30 — zero line
-const MAX_BAR = ZERO_Y - 4;       // 26px — max bar height each direction
-const N_BARS  = 25;
-const SLOT_W  = VB_W / N_BARS;    // 20px per slot
-const BAR_W   = SLOT_W - 2;       // 18px bar, 2px gap
-const POS_CLR = '#1a7f37';
-const NEG_CLR = '#cf222e';
-const LAST_POS = '#2da44e';        // slightly brighter for the latest bar
-const LAST_NEG = '#e5534b';
+// ── Config ────────────────────────────────────────────────────────────────────
+// Fixed display order and market labels
+const DISPLAY_ORDER = [
+  { ticker: 'SPY',  index: '500'  },
+  { ticker: 'RSP',  index: '500'  },
+  { ticker: 'QQQ',  index: '100'  },
+  { ticker: 'QQQE', index: '100'  },
+  { ticker: 'IWM',  index: '2000' },
+  { ticker: 'DIA',  index: '30'   },
+];
 
-function buildHistogramSVG(values, maxAbsVal) {
+// ── SVG Histogram ─────────────────────────────────────────────────────────────
+const VB_W    = 200;   // narrow viewBox
+const VB_H    = 48;
+const ZERO_Y  = VB_H / 2;          // 24
+const MAX_BAR = ZERO_Y - 3;        // 21px max bar height
+const N_BARS  = 25;
+const SLOT_W  = VB_W / N_BARS;     // 8px per slot
+const BAR_W   = SLOT_W - 2;        // 6px bar, 2px gap
+const POS_CLR  = '#1a7f37';
+const NEG_CLR  = '#cf222e';
+const LAST_POS = '#2da44e';
+const LAST_NEG = '#e5534b';
+const SPY_CLR  = '#8c959f';        // flat neutral for SPY reference
+
+function buildHistogramSVG(values, isSpy) {
+  const maxAbs  = isSpy ? 1 : Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
   const lastIdx = values.length - 1;
+
   const bars = values.map((v, i) => {
     if (v === null || v === undefined || isNaN(v)) return '';
     const isPos  = v >= 0;
     const isLast = i === lastIdx;
-    const barH   = maxAbsVal > 0 ? (Math.abs(v) / maxAbsVal * MAX_BAR) : 0;
+    const barH   = maxAbs > 0 ? (Math.abs(v) / maxAbs * MAX_BAR) : 0;
     const x      = i * SLOT_W + 1;
     const y      = isPos ? ZERO_Y - barH : ZERO_Y;
-    const fill   = isLast ? (isPos ? LAST_POS : LAST_NEG)
+    const fill   = isSpy  ? SPY_CLR
+                 : isLast ? (isPos ? LAST_POS : LAST_NEG)
                            : (isPos ? POS_CLR  : NEG_CLR);
     const tip    = `${v >= 0 ? '+' : ''}${v.toFixed(4)}`;
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}" rx="1"><title>${tip}</title></rect>`;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}" rx="0"><title>${tip}</title></rect>`;
   }).join('');
 
   return `<svg viewBox="0 0 ${VB_W} ${VB_H}" preserveAspectRatio="none">
-    <line x1="0" y1="${ZERO_Y}" x2="${VB_W}" y2="${ZERO_Y}" stroke="#d0d7de" stroke-width="1"/>
+    <line x1="0" y1="${ZERO_Y}" x2="${VB_W}" y2="${ZERO_Y}" stroke="#d0d7de" stroke-width="0.8"/>
     ${bars}
   </svg>`;
 }
 
 // ── Render rows ───────────────────────────────────────────────────────────────
 function renderDashboard(latest) {
-  const series  = latest.vars_series ?? {};
-  const vars    = latest.vars;
-  const tickers = Object.keys(vars);
+  const series = latest.vars_series ?? {};
+  const vars   = latest.vars ?? {};
+  const tbody  = document.getElementById('ticker-body');
 
-  const tbody = document.getElementById('ticker-body');
+  tbody.innerHTML = DISPLAY_ORDER.map(({ ticker, index }) => {
+    const isSpy  = ticker === 'SPY';
+    const val    = isSpy ? 0 : (vars[ticker] ?? null);
+    const values = isSpy ? Array(25).fill(0) : (series[ticker] ?? []);
+    const svg    = buildHistogramSVG(values, isSpy);
 
-  // Sort by current VARS descending
-  const sorted = [...tickers].sort((a, b) => vars[b] - vars[a]);
-
-  tbody.innerHTML = sorted.map(ticker => {
-    const val    = vars[ticker];
-    const cls    = val > 0 ? 'pos' : val < 0 ? 'neg' : 'zero';
-    const label  = (val >= 0 ? '+' : '') + val.toFixed(2);
-    const values = series[ticker] ?? [];
-    // Each ticker uses its own Y-scale
-    const maxAbs = Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
-    const svg    = buildHistogramSVG(values, maxAbs);
+    const cls   = (val === null) ? 'zero' : val > 0 ? 'pos' : val < 0 ? 'neg' : 'zero';
+    const label = isSpy        ? '<span class="ticker-value zero">benchmark</span>'
+                : val === null ? '<span class="ticker-value zero">—</span>'
+                : `<span class="ticker-value ${cls}">${val >= 0 ? '+' : ''}${val.toFixed(2)}</span>`;
 
     return `<tr class="ticker-row">
-      <td class="col-name"><span class="ticker-name">${ticker}</span></td>
-      <td class="col-value"><span class="ticker-value ${cls}">${label}</span></td>
-      <td class="histogram-cell">
+      <td class="market-cell">
+        <div class="ticker-label">
+          <span class="ticker-symbol">${ticker}</span>
+          <span class="ticker-index">${index}</span>
+        </div>
+        <div>${label}</div>
+      </td>
+      <td class="rs-cell">
         <div class="histogram-wrap">${svg}</div>
       </td>
     </tr>`;
   }).join('');
-
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
