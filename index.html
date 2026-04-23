@@ -192,12 +192,12 @@ function toBeiJing(isoStr) {
 // ── Config ────────────────────────────────────────────────────────────────────
 // Fixed display order and market labels
 const DISPLAY_ORDER = [
-  { ticker: 'SPY',  index: '500'  },
-  { ticker: 'RSP',  index: '500'  },
-  { ticker: 'QQQ',  index: '100'  },
-  { ticker: 'QQQE', index: '100'  },
-  { ticker: 'IWM',  index: '2000' },
-  { ticker: 'DIA',  index: '30'   },
+  { ticker: 'SPY',  market: 'SPY 500'  },
+  { ticker: 'RSP',  market: 'RSP 500'  },
+  { ticker: 'QQQ',  market: 'QQQ 100'  },
+  { ticker: 'QQQE', market: 'QQQE 100' },
+  { ticker: 'IWM',  market: 'IWM 2000' },
+  { ticker: 'DIA',  market: 'DIA 30'   },
 ];
 
 // ── SVG Histogram ─────────────────────────────────────────────────────────────
@@ -244,14 +244,14 @@ function renderDashboard(latest) {
   const vars   = latest.vars ?? {};
   const tbody  = document.getElementById('ticker-body');
 
-  tbody.innerHTML = DISPLAY_ORDER.map(({ ticker, index }) => {
+  tbody.innerHTML = DISPLAY_ORDER.map(({ ticker, market }) => {
     const isSpy  = ticker === 'SPY';
     const values = isSpy ? Array(25).fill(0) : (series[ticker] ?? []);
     const svg    = buildHistogramSVG(values, isSpy);
 
     return `<tr class="ticker-row">
-      <td class="market-cell"><span class="ticker-symbol">${ticker}</span></td>
-      <td class="index-cell">${index}</td>
+      <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
+      <td class="index-cell">${ticker}</td>
       <td class="rs-cell">
         <div class="histogram-wrap">${svg}</div>
       </td>
