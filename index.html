@@ -77,6 +77,7 @@
     .col-market { width: 100px; }
     .col-index  { width: 80px; }
     .col-rs     { width: 90px; }
+    .col-sts    { width: 80px; }
 
     /* Header row */
     .ticker-table thead th {
@@ -89,7 +90,18 @@
       border-bottom: 1px solid var(--border);
       text-align: left;
     }
-    .ticker-table thead th.col-rs { padding-left: 8px; }
+    .ticker-table thead th.col-rs  { padding-left: 8px; }
+    .ticker-table thead th.col-sts { padding-left: 16px; }
+
+    .sts-cell { padding-left: 16px; }
+    .sts-value {
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .sts-high { color: var(--pos); }
+    .sts-low  { color: var(--neg); }
+    .sts-mid  { color: var(--muted); }
 
     /* Data rows */
     .ticker-row { border-top: 1px solid var(--border); }
@@ -152,12 +164,14 @@
       <col class="col-market">
       <col class="col-index">
       <col class="col-rs">
+      <col class="col-sts">
     </colgroup>
     <thead>
       <tr>
         <th class="col-market">Market</th>
         <th class="col-index">Index</th>
         <th class="col-rs">1-Month RS</th>
+        <th class="col-sts">RS_STS%</th>
       </tr>
     </thead>
     <tbody id="ticker-body"></tbody>
@@ -185,6 +199,16 @@ function toBeiJing(isoStr) {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   });
+}
+
+// ── PERCENTRANK (matches Excel's PERCENTRANK) ─────────────────────────────────
+// = count of values strictly below x / (n - 1)
+function percentRank(values, val) {
+  const valid = values.filter(v => v !== null && !isNaN(v));
+  const n = valid.length;
+  if (n <= 1) return null;
+  const below = valid.filter(v => v < val).length;
+  return below / (n - 1);
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -248,12 +272,24 @@ function renderDashboard(latest) {
     const values = isSpy ? Array(25).fill(0) : (series[ticker] ?? []);
     const svg    = buildHistogramSVG(values, isSpy);
 
+    // RS_STS%
+    let stsHtml = '<span class="sts-value sts-mid">—</span>';
+    if (!isSpy && values.length) {
+      const pr = percentRank(values, values[values.length - 1]);
+      if (pr !== null) {
+        const pct = Math.round(pr * 100);
+        const cls = pct >= 80 ? 'sts-high' : pct <= 20 ? 'sts-low' : 'sts-mid';
+        stsHtml = `<span class="sts-value ${cls}">${pct}%</span>`;
+      }
+    }
+
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
       <td class="rs-cell">
         <div class="histogram-wrap">${svg}</div>
       </td>
+      <td class="sts-cell">${stsHtml}</td>
     </tr>`;
   }).join('');
 }
