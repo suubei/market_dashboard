@@ -214,18 +214,19 @@ const SPY_CLR  = '#8c959f';        // flat neutral for SPY reference
 
 function buildHistogramSVG(values, isSpy) {
   const maxAbs  = isSpy ? 1 : Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
-  const lastIdx = values.length - 1;
+  const maxVal  = isSpy ? 0 : Math.max(...values.filter(v => v !== null));
+  const maxIdx  = isSpy ? -1 : values.indexOf(maxVal);
 
   const bars = values.map((v, i) => {
     if (v === null || v === undefined || isNaN(v)) return '';
-    const isPos  = v >= 0;
-    const isLast = i === lastIdx;
+    const isPos    = v >= 0;
+    const isMaxBar = i === maxIdx;
     const barH   = maxAbs > 0 ? (Math.abs(v) / maxAbs * MAX_BAR) : 0;
     const x      = i * SLOT_W + 1;
     const y      = isPos ? ZERO_Y - barH : ZERO_Y;
-    const fill   = isSpy  ? SPY_CLR
-                 : isLast ? (isPos ? LAST_POS : LAST_NEG)
-                           : (isPos ? POS_CLR  : NEG_CLR);
+    const fill   = isSpy    ? SPY_CLR
+                 : isMaxBar ? (isPos ? LAST_POS : LAST_NEG)
+                             : (isPos ? POS_CLR  : NEG_CLR);
     const tip    = `${v >= 0 ? '+' : ''}${v.toFixed(4)}`;
     return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}" rx="0"><title>${tip}</title></rect>`;
   }).join('');
