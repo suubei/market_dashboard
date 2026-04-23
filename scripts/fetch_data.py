@@ -12,7 +12,8 @@ import json
 import logging
 import os
 import sys
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
@@ -41,11 +42,17 @@ LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 
 # ── Trading calendar ──────────────────────────────────────────────────────────
 def get_last_trading_day() -> date:
-    """Return the most recent completed NYSE session (UTC date context)."""
+    """Return the most recent completed NYSE session.
+
+    Uses ET time: if it's before 4:15 PM ET, today's session isn't closed yet,
+    so fall back to the previous trading day.
+    """
     cal = xcals.get_calendar("XNYS")
-    today_utc = date.today()
+    et_now  = datetime.now(ZoneInfo("America/New_York"))
+    cutoff  = et_now.replace(hour=16, minute=15, second=0, microsecond=0)
+    ref     = et_now.date() if et_now >= cutoff else et_now.date() - timedelta(days=1)
     for i in range(10):
-        candidate = today_utc - timedelta(days=i)
+        candidate = ref - timedelta(days=i)
         if cal.is_session(pd.Timestamp(candidate)):
             return candidate
     raise RuntimeError("Could not find last trading day within 10 days")
