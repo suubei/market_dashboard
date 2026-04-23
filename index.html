@@ -200,6 +200,26 @@
     </thead>
     <tbody id="ticker-body"></tbody>
   </table>
+
+  <table class="ticker-table" style="margin-top:24px">
+    <colgroup>
+      <col class="col-market">
+      <col class="col-index">
+      <col class="col-rs">
+      <col class="col-sts">
+      <col class="col-chg">
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="col-market">Sub-Market</th>
+        <th class="col-index">Ticker</th>
+        <th class="col-rs">1-Month RS</th>
+        <th class="col-sts">RS_STS%</th>
+        <th class="col-chg" style="text-align:center">% Daily Change</th>
+      </tr>
+    </thead>
+    <tbody id="sub-ticker-body"></tbody>
+  </table>
 </div>
 
 <footer>
@@ -236,7 +256,6 @@ function percentRank(values, val) {
 }
 
 // ── Config ────────────────────────────────────────────────────────────────────
-// Fixed display order and market labels
 const DISPLAY_ORDER = [
   { ticker: 'SPY',  market: 'SPY 500'  },
   { ticker: 'RSP',  market: 'RSP 500'  },
@@ -244,6 +263,15 @@ const DISPLAY_ORDER = [
   { ticker: 'QQQE', market: 'QQQE 100' },
   { ticker: 'IWM',  market: 'IWM 2000' },
   { ticker: 'DIA',  market: 'DIA 30'   },
+];
+
+const SUB_DISPLAY_ORDER = [
+  { ticker: 'IJS', market: 'S&P Small-Cap 600 Value'  },
+  { ticker: 'IJT', market: 'S&P Small-Cap 600 Growth' },
+  { ticker: 'IJJ', market: 'S&P Mid-Cap 400 Value'    },
+  { ticker: 'IJK', market: 'S&P Mid-Cap 400 Growth'   },
+  { ticker: 'IVE', market: 'S&P Large-Cap 500 Value'  },
+  { ticker: 'IVW', market: 'S&P Large-Cap 500 Growth' },
 ];
 
 // ── SVG Histogram ─────────────────────────────────────────────────────────────
@@ -313,28 +341,26 @@ function buildChgBarSVG(val, mode, maxAbs) {
   </svg>`;
 }
 
-// ── Render rows ───────────────────────────────────────────────────────────────
-function renderDashboard(latest) {
-  const series  = latest.vars_series ?? {};
-  const vars    = latest.vars ?? {};
-  const changes = latest.daily_change ?? {};
-  const tbody   = document.getElementById('ticker-body');
+// ── Render a section's tbody ──────────────────────────────────────────────────
+function renderSection(displayOrder, tbodyId, series, vars, changes) {
+  const tbody  = document.getElementById(tbodyId);
+  const isSPY  = t => t === 'SPY';
 
-  // Shared axis: compute mode and maxAbs across all tickers
-  const allChg = DISPLAY_ORDER.map(({ ticker }) => changes[ticker]).filter(v => v != null);
+  // Shared daily-change axis for this section
+  const allChg = displayOrder.map(({ ticker }) => changes[ticker]).filter(v => v != null);
   const hasPos = allChg.some(v => v > 0);
   const hasNeg = allChg.some(v => v < 0);
   const maxAbs = Math.max(...allChg.map(Math.abs), 0.01);
   const chgMode = (hasPos && hasNeg) ? 'butterfly' : hasPos ? 'allPos' : 'allNeg';
 
-  tbody.innerHTML = DISPLAY_ORDER.map(({ ticker, market }) => {
-    const isSpy  = ticker === 'SPY';
-    const values = isSpy ? Array(25).fill(0) : (series[ticker] ?? []);
-    const svg    = buildHistogramSVG(values, isSpy);
+  tbody.innerHTML = displayOrder.map(({ ticker, market }) => {
+    const spy    = isSPY(ticker);
+    const values = spy ? Array(25).fill(0) : (series[ticker] ?? []);
+    const svg    = buildHistogramSVG(values, spy);
 
     // RS_STS%
     let stsHtml = '<span class="sts-value sts-mid">—</span>';
-    if (!isSpy && values.length) {
+    if (!spy && values.length) {
       const pr = percentRank(values, values[values.length - 1]);
       if (pr !== null) {
         const pct = Math.round(pr * 100);
@@ -343,12 +369,10 @@ function renderDashboard(latest) {
       }
     }
 
-    // % Daily Change with bar background
-    const chg = changes[ticker] ?? null;
+    // % Daily Change
+    const chg    = changes[ticker] ?? null;
     const barSvg = buildChgBarSVG(chg, chgMode, maxAbs);
-    const chgText = chg !== null
-      ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%`
-      : '—';
+    const chgText = chg !== null ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '—';
 
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
@@ -360,6 +384,16 @@ function renderDashboard(latest) {
       </td>
     </tr>`;
   }).join('');
+}
+
+// ── Render dashboard ──────────────────────────────────────────────────────────
+function renderDashboard(latest) {
+  const series  = latest.vars_series ?? {};
+  const vars    = latest.vars ?? {};
+  const changes = latest.daily_change ?? {};
+
+  renderSection(DISPLAY_ORDER,     'ticker-body',     series, vars, changes);
+  renderSection(SUB_DISPLAY_ORDER, 'sub-ticker-body', series, vars, changes);
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
