@@ -104,10 +104,7 @@
     .histogram-wrap svg { display: block; width: 100%; height: 32px; }
 
     .sts-cell { text-align: center; }
-    .sts-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .sts-high { color: var(--pos); }
-    .sts-low  { color: var(--neg); }
-    .sts-mid  { color: var(--muted); }
+    .sts-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
 
     .chg-cell { padding: 0 !important; }
     .chg-wrap { position: relative; padding: 0 6px; text-align: right; }
@@ -289,13 +286,20 @@ function renderSection(displayOrder, tbodyId, series, changes) {
     const values = isSpy ? Array(N_BARS).fill(0) : (series[ticker] ?? []);
 
     // RS_STS%
-    let stsHtml = '<span class="sts-value sts-mid">—</span>';
+    let stsHtml = '<span class="sts-value">—</span>';
+    let stsBg = '';
     if (!isSpy && values.length) {
       const pr = percentRank(values, values[values.length - 1]);
       if (pr !== null) {
         const pct = Math.round(pr * 100);
-        const cls = pct >= 80 ? 'sts-high' : pct <= 20 ? 'sts-low' : 'sts-mid';
-        stsHtml = `<span class="sts-value ${cls}">${pct}%</span>`;
+        stsHtml = `<span class="sts-value">${pct}%</span>`;
+        if (pct < 50) {
+          const a = ((50 - pct) / 50 * 0.30).toFixed(2);
+          stsBg = `background:rgba(207,34,46,${a});`;
+        } else if (pct > 50) {
+          const a = ((pct - 50) / 50 * 0.30).toFixed(2);
+          stsBg = `background:rgba(26,127,55,${a});`;
+        }
       }
     }
 
@@ -307,7 +311,7 @@ function renderSection(displayOrder, tbodyId, series, changes) {
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
       <td class="rs-cell"><div class="histogram-wrap">${buildHistogramSVG(values, isSpy)}</div></td>
-      <td class="sts-cell">${stsHtml}</td>
+      <td class="sts-cell" style="${stsBg}">${stsHtml}</td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbs)}<span class="chg-text">${chgText}</span></div></td>
     </tr>`;
   }).join('');
