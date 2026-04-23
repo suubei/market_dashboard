@@ -1,0 +1,42 @@
+name: Update VARS Data
+
+# UTC 22:00 Mon–Fri  =  Beijing (UTC+8) 06:00 Tue–Sat
+# US market closes at UTC 20:00 (summer) / 21:00 (winter), so data is always ready.
+on:
+  schedule:
+    - cron: '0 22 * * 1-5'
+  workflow_dispatch:        # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # Needed to commit & push data files
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch data and compute VARS
+        env:
+          TIINGO_TOKEN: ${{ secrets.TIINGO_TOKEN }}
+        run: python scripts/fetch_data.py
+
+      - name: Commit and push updated data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          # Only commit if there are staged changes (skips non-trading days)
+          git diff --staged --quiet || \
+            git commit -m "data: VARS update $(date -u +'%Y-%m-%d')"
+          git push

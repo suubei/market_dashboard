@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Dashboard · VARS</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #7d8590;
+      --accent:    #58a6ff;
+      --pos:       #3fb950;
+      --neg:       #f85149;
+      --rsp:       #f0883e;
+      --qqq:       #58a6ff;
+      --qqqe:      #79c0ff;
+      --iwm:       #56d364;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      padding: 24px 16px 48px;
+    }
+
+    /* ── Header ── */
+    header {
+      max-width: 960px;
+      margin: 0 auto 32px;
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+    header h1 span {
+      color: var(--accent);
+    }
+    #meta {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    #meta b { color: var(--text); }
+
+    /* ── Status / error banners ── */
+    #status {
+      max-width: 960px;
+      margin: 0 auto 24px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      display: none;
+    }
+    #status.error { border-color: var(--neg); color: var(--neg); }
+
+    /* ── Grid ── */
+    .grid {
+      max-width: 960px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 20px 16px;
+    }
+    .card.wide { grid-column: 1 / -1; }
+
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* ── VARS value cards ── */
+    .ticker-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 500px) { .ticker-cards { grid-template-columns: repeat(2, 1fr); } }
+
+    .ticker-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 12px 12px;
+      text-align: center;
+    }
+    .ticker-card .name {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .ticker-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .ticker-card .value.pos { color: var(--pos); }
+    .ticker-card .value.neg { color: var(--neg); }
+    .ticker-card .value.zero { color: var(--muted); }
+
+    /* ── Charts ── */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .chart-wrap.bar-wrap  { height: 200px; }
+    .chart-wrap.line-wrap { height: 240px; }
+
+    /* ── Footer ── */
+    footer {
+      max-width: 960px;
+      margin: 32px auto 0;
+      font-size: 0.76rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 24px;
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Market Dashboard &nbsp;·&nbsp; <span>VARS</span> vs SPY</h1>
+  <div id="meta">
+    <span>数据日期：<b id="data-date">—</b></span>
+    <span>更新时间：<b id="update-time">—</b>（北京时间）</span>
+    <span>参数：ATR <b id="p-atr">—</b> &nbsp;|&nbsp; Lookback <b id="p-lb">—</b> 交易日</span>
+  </div>
+</header>
+
+<div id="status"></div>
+
+<div class="grid" id="main-grid" style="display:none">
+
+  <!-- Row 1: Ticker value cards -->
+  <div class="card wide">
+    <div class="card-title">当前 VARS（相对 SPY，数值越高越强）</div>
+    <div class="ticker-cards" id="ticker-cards"></div>
+  </div>
+
+  <!-- Row 2: Bar chart (left) + Line chart (right) -->
+  <div class="card">
+    <div class="card-title">VARS 排名</div>
+    <div class="chart-wrap bar-wrap">
+      <canvas id="bar-chart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">近期走势（最近 10 个交易日）</div>
+    <div class="chart-wrap line-wrap">
+      <canvas id="line-chart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>VARS formula: <i>Σ(ΔClose/ATR)_asset − Σ(ΔClose/ATR)_SPY</i>，参考 mattishenner &amp; Jeff Sun</span>
+  <span>数据来源：<a href="https://www.tiingo.com" target="_blank">Tiingo</a></span>
+  <span>每日北京时间 06:00 自动更新</span>
+</footer>
+
+<script>
+// ── Ticker color map ──────────────────────────────────────────────────────────
+const COLORS = {
+  RSP:  getComputedStyle(document.documentElement).getPropertyValue('--rsp').trim(),
+  QQQ:  getComputedStyle(document.documentElement).getPropertyValue('--qqq').trim(),
+  QQQE: getComputedStyle(document.documentElement).getPropertyValue('--qqqe').trim(),
+  IWM:  getComputedStyle(document.documentElement).getPropertyValue('--iwm').trim(),
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showStatus(msg, isError = false) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.classList.toggle('error', isError);
+}
+
+function toBeiJing(isoStr) {
+  if (!isoStr) return '—';
+  return new Date(isoStr).toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+function colorClass(v) {
+  if (v === null || v === undefined) return 'zero';
+  return v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero';
+}
+
+// ── Chart defaults ────────────────────────────────────────────────────────────
+Chart.defaults.color          = '#7d8590';
+Chart.defaults.borderColor    = '#30363d';
+Chart.defaults.font.family    = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+Chart.defaults.font.size      = 11;
+
+// ── Render ticker value cards ─────────────────────────────────────────────────
+function renderCards(vars) {
+  const container = document.getElementById('ticker-cards');
+  const sorted = Object.entries(vars).sort((a, b) => b[1] - a[1]);
+  container.innerHTML = sorted.map(([ticker, value]) => `
+    <div class="ticker-card">
+      <div class="name" style="color:${COLORS[ticker] ?? 'inherit'}">${ticker}</div>
+      <div class="value ${colorClass(value)}">${value >= 0 ? '+' : ''}${value.toFixed(2)}</div>
+    </div>
+  `).join('');
+}
+
+// ── Bar chart (ranked) ────────────────────────────────────────────────────────
+function renderBarChart(vars) {
+  const sorted   = Object.entries(vars).sort((a, b) => b[1] - a[1]);
+  const labels   = sorted.map(([t]) => t);
+  const values   = sorted.map(([, v]) => v);
+  const bgColors = labels.map(t => COLORS[t] ?? '#58a6ff');
+
+  new Chart(document.getElementById('bar-chart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data:            values,
+        backgroundColor: bgColors.map(c => c + 'cc'),
+        borderColor:     bgColors,
+        borderWidth:     1,
+        borderRadius:    4,
+      }],
+    },
+    options: {
+      indexAxis:   'y',
+      responsive:  true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` VARS: ${ctx.parsed.x >= 0 ? '+' : ''}${ctx.parsed.x.toFixed(4)}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: '#30363d' },
+          ticks: { callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { weight: '600', size: 12 } },
+        },
+      },
+    },
+  });
+}
+
+// ── Line chart (10-day history) ───────────────────────────────────────────────
+function renderLineChart(summary) {
+  if (!summary.dates || summary.dates.length < 2) return;
+
+  const shortLabels = summary.dates.map(d => d.slice(5));  // MM-DD
+  const datasets = Object.entries(summary.tickers).map(([ticker, values]) => ({
+    label:           ticker,
+    data:            values,
+    borderColor:     COLORS[ticker] ?? '#58a6ff',
+    backgroundColor: 'transparent',
+    borderWidth:     2,
+    pointRadius:     3,
+    pointHoverRadius: 5,
+    tension:         0.3,
+    spanGaps:        true,
+  }));
+
+  new Chart(document.getElementById('line-chart'), {
+    type: 'line',
+    data: { labels: shortLabels, datasets },
+    options: {
+      responsive:  true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { boxWidth: 12, padding: 12 },
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y?.toFixed(4) ?? 'N/A'}`,
+          },
+        },
+      },
+      scales: {
+        x: { grid: { color: '#30363d' } },
+        y: {
+          grid: { color: '#30363d' },
+          ticks: { callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) },
+        },
+      },
+    },
+  });
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const [latest, summary] = await Promise.all([
+      fetch('./data/latest.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      fetch('./data/history_summary.json').then(r => r.json()).catch(() => ({ dates: [], tickers: {} })),
+    ]);
+
+    // No data yet (first deploy)
+    if (!latest.date) {
+      showStatus('数据尚未生成，等待首次 GitHub Actions 运行（北京时间每日 06:00）。');
+      return;
+    }
+
+    // Fill header meta
+    document.getElementById('data-date').textContent   = latest.date;
+    document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
+    document.getElementById('p-atr').textContent       = latest.params.atr_period;
+    document.getElementById('p-lb').textContent        = latest.params.lookback;
+
+    // Show main grid
+    document.getElementById('main-grid').style.display = 'grid';
+
+    renderCards(latest.vars);
+    renderBarChart(latest.vars);
+    renderLineChart(summary);
+
+  } catch (err) {
+    showStatus('数据加载失败：' + err.message, true);
+    console.error(err);
+  }
+})();
+</script>
+</body>
+</html>
