@@ -166,18 +166,16 @@
 <body>
 
 <header>
-  <h1>Market Dashboard &nbsp;·&nbsp; <span>VARS</span> vs SPY</h1>
+  <h1>Market Dashboard</h1>
   <div id="meta">
     <span>数据日期：<b id="data-date">—</b></span>
     <span>更新时间：<b id="update-time">—</b>（北京时间）</span>
-    <span>ATR <b id="p-atr">—</b> &nbsp;|&nbsp; Lookback <b id="p-lb">—</b> 交易日</span>
   </div>
 </header>
 
 <div id="status"></div>
 
 <div id="dashboard">
-  <div class="section-label">VARS — 过去 25 个交易日（相对 SPY，右端 = 最新）</div>
   <table class="ticker-table" id="ticker-table">
     <colgroup>
       <col class="col-name">
@@ -193,7 +191,6 @@
 </div>
 
 <footer>
-  <span>VARS: <i>Σ(ΔClose/ATR)<sub>asset</sub> − Σ(ΔClose/ATR)<sub>SPY</sub></i>，参考 mattishenner &amp; Jeff Sun</span>
   <span>数据：<a href="https://www.tiingo.com" target="_blank">Tiingo</a></span>
   <span>每日北京时间 06:00 自动更新</span>
 </footer>
@@ -302,8 +299,6 @@ function renderDashboard(latest) {
 
     document.getElementById('data-date').textContent   = latest.date;
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
-    document.getElementById('p-atr').textContent       = latest.params.atr_period;
-    document.getElementById('p-lb').textContent        = latest.params.lookback;
 
     document.getElementById('dashboard').style.display = 'block';
     renderDashboard(latest);
