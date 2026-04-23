@@ -1,6 +1,6 @@
 {
-  "date": "2026-04-23",
-  "updated_at": "2026-04-23T10:31:32Z",
+  "date": null,
+  "updated_at": null,
   "params": {
     "atr_period": 20,
     "lookback": 25
