@@ -29,7 +29,7 @@
     /* ── Header ── */
     header {
       max-width: 900px;
-      margin: 0 auto 28px;
+      margin: 0 0 28px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 16px;
     }
@@ -53,7 +53,7 @@
     /* ── Status banner ── */
     #status {
       max-width: 900px;
-      margin: 0 auto 20px;
+      margin: 0 0 20px;
       padding: 10px 14px;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -66,8 +66,8 @@
 
     /* ── Main table ── */
     #dashboard {
-      max-width: 560px;
-      margin: 0 auto;
+      max-width: 900px;
+      margin: 0;
       display: none;
     }
 
@@ -76,8 +76,9 @@
       border-collapse: collapse;
     }
 
-    .col-market { width: 160px; }
-    .col-rs     { /* fills rest */ }
+    .col-market { width: 100px; }
+    .col-index  { width: 80px; }
+    .col-rs     { width: 180px; }
 
     /* Header row */
     .ticker-table thead th {
@@ -102,30 +103,13 @@
     }
 
     .market-cell { padding-right: 16px; }
+    .index-cell  { padding-right: 16px; color: var(--muted); font-size: 0.85rem; }
 
-    .ticker-label {
-      display: flex;
-      align-items: baseline;
-      gap: 5px;
-    }
     .ticker-symbol {
       font-size: 0.88rem;
       font-weight: 700;
       color: var(--text);
     }
-    .ticker-index {
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-    .ticker-value {
-      margin-top: 2px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-    }
-    .ticker-value.pos  { color: var(--pos); }
-    .ticker-value.neg  { color: var(--neg); }
-    .ticker-value.zero { color: var(--muted); }
 
     .rs-cell { padding-left: 8px; }
 
@@ -139,7 +123,7 @@
     /* ── Footer ── */
     footer {
       max-width: 900px;
-      margin: 28px auto 0;
+      margin: 28px 0 0;
       padding-top: 14px;
       border-top: 1px solid var(--border);
       font-size: 0.72rem;
@@ -168,11 +152,13 @@
   <table class="ticker-table">
     <colgroup>
       <col class="col-market">
+      <col class="col-index">
       <col class="col-rs">
     </colgroup>
     <thead>
       <tr>
         <th class="col-market">Market</th>
+        <th class="col-index">Index</th>
         <th class="col-rs">1-Month RS</th>
       </tr>
     </thead>
@@ -260,23 +246,12 @@ function renderDashboard(latest) {
 
   tbody.innerHTML = DISPLAY_ORDER.map(({ ticker, index }) => {
     const isSpy  = ticker === 'SPY';
-    const val    = isSpy ? 0 : (vars[ticker] ?? null);
     const values = isSpy ? Array(25).fill(0) : (series[ticker] ?? []);
     const svg    = buildHistogramSVG(values, isSpy);
 
-    const cls   = (val === null) ? 'zero' : val > 0 ? 'pos' : val < 0 ? 'neg' : 'zero';
-    const label = isSpy        ? '<span class="ticker-value zero">benchmark</span>'
-                : val === null ? '<span class="ticker-value zero">—</span>'
-                : `<span class="ticker-value ${cls}">${val >= 0 ? '+' : ''}${val.toFixed(2)}</span>`;
-
     return `<tr class="ticker-row">
-      <td class="market-cell">
-        <div class="ticker-label">
-          <span class="ticker-symbol">${ticker}</span>
-          <span class="ticker-index">${index}</span>
-        </div>
-        <div>${label}</div>
-      </td>
+      <td class="market-cell"><span class="ticker-symbol">${ticker}</span></td>
+      <td class="index-cell">${index}</td>
       <td class="rs-cell">
         <div class="histogram-wrap">${svg}</div>
       </td>
