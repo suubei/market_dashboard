@@ -78,6 +78,7 @@
     .col-index  { width: 80px; }
     .col-rs     { width: 90px; }
     .col-sts    { width: 80px; }
+    .col-chg    { width: 90px; }
 
     /* Header row */
     .ticker-table thead th {
@@ -102,6 +103,16 @@
     .sts-high { color: var(--pos); }
     .sts-low  { color: var(--neg); }
     .sts-mid  { color: var(--muted); }
+
+    .chg-cell { text-align: center; }
+    .chg-value {
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .chg-pos  { color: var(--pos); }
+    .chg-neg  { color: var(--neg); }
+    .chg-zero { color: var(--muted); }
 
     /* Data rows */
     .ticker-row { border-top: 1px solid var(--border); }
@@ -165,6 +176,7 @@
       <col class="col-index">
       <col class="col-rs">
       <col class="col-sts">
+      <col class="col-chg">
     </colgroup>
     <thead>
       <tr>
@@ -172,6 +184,7 @@
         <th class="col-index">Index</th>
         <th class="col-rs">1-Month RS</th>
         <th class="col-sts">RS_STS%</th>
+        <th class="col-chg" style="text-align:center">% Daily Change</th>
       </tr>
     </thead>
     <tbody id="ticker-body"></tbody>
@@ -263,9 +276,10 @@ function buildHistogramSVG(values, isSpy) {
 
 // ── Render rows ───────────────────────────────────────────────────────────────
 function renderDashboard(latest) {
-  const series = latest.vars_series ?? {};
-  const vars   = latest.vars ?? {};
-  const tbody  = document.getElementById('ticker-body');
+  const series  = latest.vars_series ?? {};
+  const vars    = latest.vars ?? {};
+  const changes = latest.daily_change ?? {};
+  const tbody   = document.getElementById('ticker-body');
 
   tbody.innerHTML = DISPLAY_ORDER.map(({ ticker, market }) => {
     const isSpy  = ticker === 'SPY';
@@ -283,6 +297,14 @@ function renderDashboard(latest) {
       }
     }
 
+    // % Daily Change
+    const chg = changes[ticker] ?? null;
+    let chgHtml = '<span class="chg-value chg-zero">—</span>';
+    if (chg !== null) {
+      const cls = chg > 0 ? 'chg-pos' : chg < 0 ? 'chg-neg' : 'chg-zero';
+      chgHtml = `<span class="chg-value ${cls}">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span>`;
+    }
+
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
@@ -290,6 +312,7 @@ function renderDashboard(latest) {
         <div class="histogram-wrap">${svg}</div>
       </td>
       <td class="sts-cell" style="text-align:center">${stsHtml}</td>
+      <td class="chg-cell">${chgHtml}</td>
     </tr>`;
   }).join('');
 }

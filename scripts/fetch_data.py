@@ -88,6 +88,18 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
     return tr.ewm(com=period - 1, adjust=False).mean()
 
 
+def compute_daily_changes(data: dict) -> dict:
+    """Return {ticker: daily_pct_change} for all tickers including benchmark."""
+    changes = {}
+    for ticker in TICKERS:
+        close = data[ticker]["adjClose"].dropna()
+        if len(close) >= 2:
+            changes[ticker] = round(
+                (close.iloc[-1] - close.iloc[-2]) / close.iloc[-2] * 100, 2
+            )
+    return changes
+
+
 def compute_vars(data: dict) -> tuple:
     """
     Returns (results, series):
@@ -121,16 +133,17 @@ def compute_vars(data: dict) -> tuple:
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
-def save_data(trade_date: date, vars_result: dict, vars_series: dict) -> None:
+def save_data(trade_date: date, vars_result: dict, vars_series: dict, daily_changes: dict) -> None:
     os.makedirs(HISTORY_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
 
     payload = {
-        "date":        date_str,
-        "updated_at":  datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "params":      {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
-        "vars":        {k: round(v, 4) for k, v in vars_result.items()},
-        "vars_series": vars_series,
+        "date":         date_str,
+        "updated_at":   datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "params":       {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
+        "vars":         {k: round(v, 4) for k, v in vars_result.items()},
+        "vars_series":  vars_series,
+        "daily_change": daily_changes,
     }
 
     # Per-day JSON snapshot (serves as historical archive)
@@ -164,8 +177,9 @@ def main() -> None:
         data[ticker] = fetch_tiingo(ticker, start, last_day)
 
     vars_result, vars_series = compute_vars(data)
+    daily_changes = compute_daily_changes(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
-    save_data(last_day, vars_result, vars_series)
+    save_data(last_day, vars_result, vars_series, daily_changes)
 
 
 if __name__ == "__main__":
