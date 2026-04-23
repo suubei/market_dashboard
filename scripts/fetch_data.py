@@ -100,10 +100,15 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
     return tr.ewm(com=period - 1, adjust=False).mean()
 
 
-def compute_vars(data: dict) -> dict:
+def compute_vars(data: dict) -> tuple:
     """
-    For each non-benchmark ticker, compute the latest VARS value.
-    Returns {ticker: float}.
+    For each non-benchmark ticker, compute:
+      - latest scalar VARS value  → results dict
+      - 25-day daily VARS series  → series dict  (for the histogram display)
+
+    Returns (results, series) where:
+      results = {ticker: float}
+      series  = {"dates": [...], ticker: [float × LOOKBACK], ...}
     """
     spy_df  = data[BENCHMARK]
     spy_atr = wilder_atr(spy_df, ATR_PERIOD)
@@ -111,6 +116,8 @@ def compute_vars(data: dict) -> dict:
     spy_cum = spy_adj.rolling(LOOKBACK).sum()
 
     results = {}
+    series: dict = {"dates": []}
+
     for ticker in TICKERS:
         if ticker == BENCHMARK:
             continue
@@ -119,14 +126,22 @@ def compute_vars(data: dict) -> dict:
         adj = df["adjClose"].diff() / atr
         cum = adj.rolling(LOOKBACK).sum()
 
-        # Align on common trading dates and take the latest row
         t_aligned, spy_aligned = cum.align(spy_cum, join="inner")
         if t_aligned.empty or spy_aligned.empty:
             raise ValueError(f"No overlapping dates between {ticker} and {BENCHMARK}")
 
-        results[ticker] = float(t_aligned.iloc[-1] - spy_aligned.iloc[-1])
+        vars_diff = (t_aligned - spy_aligned).dropna()
 
-    return results
+        # Last LOOKBACK bars = the 25 histogram values
+        recent = vars_diff.iloc[-LOOKBACK:]
+
+        if not series["dates"]:
+            series["dates"] = [d.strftime("%Y-%m-%d") for d in recent.index]
+
+        series[ticker] = [round(float(v), 4) for v in recent.values]
+        results[ticker] = series[ticker][-1]   # rightmost bar = today
+
+    return results, series
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
@@ -138,15 +153,16 @@ def load_history() -> list:
         return list(csv.DictReader(f))
 
 
-def save_data(trade_date: date, vars_result: dict) -> None:
+def save_data(trade_date: date, vars_result: dict, vars_series: dict) -> None:
     os.makedirs(HISTORY_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
 
     payload = {
-        "date":       date_str,
-        "updated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "params":     {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
-        "vars":       {k: round(v, 4) for k, v in vars_result.items()},
+        "date":        date_str,
+        "updated_at":  datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "params":      {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
+        "vars":        {k: round(v, 4) for k, v in vars_result.items()},
+        "vars_series": vars_series,   # {"dates": [...], "RSP": [...], ...}
     }
 
     # 1. Per-day JSON snapshot
@@ -217,10 +233,10 @@ def main() -> None:
         log.info("  Fetching %s …", ticker)
         data[ticker] = fetch_tiingo(ticker, start, last_day)
 
-    vars_result = compute_vars(data)
+    vars_result, vars_series = compute_vars(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
 
-    save_data(last_day, vars_result)
+    save_data(last_day, vars_result, vars_series)
 
 
 if __name__ == "__main__":

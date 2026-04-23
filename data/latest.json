@@ -10,5 +10,6 @@
     "QQQ": 0.3722,
     "QQQE": -0.3298,
     "IWM": 0.5866
-  }
+  },
+  "vars_series": {"dates": [], "RSP": [], "QQQ": [], "QQQE": [], "IWM": []}
 }

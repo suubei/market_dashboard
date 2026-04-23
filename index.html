@@ -4,23 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Market Dashboard · VARS</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --border:    #30363d;
-      --text:      #e6edf3;
-      --muted:     #7d8590;
-      --accent:    #58a6ff;
-      --pos:       #3fb950;
-      --neg:       #f85149;
-      --rsp:       #f0883e;
-      --qqq:       #58a6ff;
-      --qqqe:      #79c0ff;
-      --iwm:       #56d364;
+      --bg:      #ffffff;
+      --surface: #f6f8fa;
+      --border:  #d0d7de;
+      --text:    #1f2328;
+      --muted:   #57606a;
+      --accent:  #0969da;
+      --pos:     #1a7f37;
+      --neg:     #cf222e;
     }
 
     body {
@@ -28,125 +23,141 @@
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       min-height: 100vh;
-      padding: 24px 16px 48px;
+      padding: 28px 20px 56px;
     }
 
     /* ── Header ── */
     header {
-      max-width: 960px;
-      margin: 0 auto 32px;
+      max-width: 900px;
+      margin: 0 auto 28px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
     }
     header h1 {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 600;
-      letter-spacing: -0.02em;
       color: var(--text);
     }
-    header h1 span {
-      color: var(--accent);
-    }
+    header h1 span { color: var(--accent); }
+
     #meta {
       margin-top: 6px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--muted);
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 4px 20px;
     }
     #meta b { color: var(--text); }
 
-    /* ── Status / error banners ── */
+    /* ── Status banner ── */
     #status {
-      max-width: 960px;
-      margin: 0 auto 24px;
-      padding: 12px 16px;
+      max-width: 900px;
+      margin: 0 auto 20px;
+      padding: 10px 14px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.88rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
       color: var(--muted);
       display: none;
     }
     #status.error { border-color: var(--neg); color: var(--neg); }
 
-    /* ── Grid ── */
-    .grid {
-      max-width: 960px;
+    /* ── Main table ── */
+    #dashboard {
+      max-width: 900px;
       margin: 0 auto;
-      display: grid;
-      gap: 20px;
-      grid-template-columns: 1fr 1fr;
+      display: none;
     }
-    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
 
-    /* ── Cards ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px 20px 16px;
-    }
-    .card.wide { grid-column: 1 / -1; }
-
-    .card-title {
-      font-size: 0.78rem;
+    .section-label {
+      font-size: 0.72rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--muted);
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
-    /* ── VARS value cards ── */
-    .ticker-cards {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+    .ticker-table {
+      width: 100%;
+      border-collapse: collapse;
     }
-    @media (max-width: 500px) { .ticker-cards { grid-template-columns: repeat(2, 1fr); } }
 
-    .ticker-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 12px 12px;
-      text-align: center;
+    /* Column widths */
+    .col-name  { width: 70px; }
+    .col-value { width: 72px; }
+    .col-chart { /* fills rest */ }
+
+    .ticker-row {
+      border-top: 1px solid var(--border);
     }
-    .ticker-card .name {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-      margin-bottom: 6px;
+    .ticker-row:last-child { border-bottom: 1px solid var(--border); }
+
+    .ticker-row td {
+      padding: 10px 0;
+      vertical-align: middle;
     }
-    .ticker-card .value {
-      font-size: 1.5rem;
+    .ticker-row td.col-name {
+      padding-right: 12px;
+    }
+    .ticker-row td.col-value {
+      padding-right: 16px;
+      text-align: right;
+    }
+
+    .ticker-name {
+      font-size: 0.9rem;
       font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+
+    .ticker-value {
+      font-size: 0.88rem;
+      font-weight: 600;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
-    .ticker-card .value.pos { color: var(--pos); }
-    .ticker-card .value.neg { color: var(--neg); }
-    .ticker-card .value.zero { color: var(--muted); }
+    .ticker-value.pos { color: var(--pos); }
+    .ticker-value.neg { color: var(--neg); }
+    .ticker-value.zero { color: var(--muted); }
 
-    /* ── Charts ── */
-    .chart-wrap {
+    .histogram-cell { padding-right: 4px; }
+
+    .histogram-wrap {
       position: relative;
       width: 100%;
     }
-    .chart-wrap.bar-wrap  { height: 200px; }
-    .chart-wrap.line-wrap { height: 240px; }
+    .histogram-wrap svg {
+      display: block;
+      width: 100%;
+      height: 64px;
+      overflow: visible;
+    }
+
+    /* Date axis labels under the histograms */
+    .date-axis {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 2px;
+      padding: 0 1px;
+    }
 
     /* ── Footer ── */
     footer {
-      max-width: 960px;
-      margin: 32px auto 0;
-      font-size: 0.76rem;
-      color: var(--muted);
+      max-width: 900px;
+      margin: 28px auto 0;
+      padding-top: 14px;
       border-top: 1px solid var(--border);
-      padding-top: 16px;
+      font-size: 0.72rem;
+      color: var(--muted);
       display: flex;
       flex-wrap: wrap;
-      gap: 8px 24px;
+      gap: 4px 20px;
     }
     footer a { color: var(--accent); text-decoration: none; }
     footer a:hover { text-decoration: underline; }
@@ -159,52 +170,35 @@
   <div id="meta">
     <span>数据日期：<b id="data-date">—</b></span>
     <span>更新时间：<b id="update-time">—</b>（北京时间）</span>
-    <span>参数：ATR <b id="p-atr">—</b> &nbsp;|&nbsp; Lookback <b id="p-lb">—</b> 交易日</span>
+    <span>ATR <b id="p-atr">—</b> &nbsp;|&nbsp; Lookback <b id="p-lb">—</b> 交易日</span>
   </div>
 </header>
 
 <div id="status"></div>
 
-<div class="grid" id="main-grid" style="display:none">
-
-  <!-- Row 1: Ticker value cards -->
-  <div class="card wide">
-    <div class="card-title">当前 VARS（相对 SPY，数值越高越强）</div>
-    <div class="ticker-cards" id="ticker-cards"></div>
+<div id="dashboard">
+  <div class="section-label">VARS — 过去 25 个交易日（相对 SPY，右端 = 最新）</div>
+  <table class="ticker-table" id="ticker-table">
+    <colgroup>
+      <col class="col-name">
+      <col class="col-value">
+      <col class="col-chart">
+    </colgroup>
+    <tbody id="ticker-body"></tbody>
+  </table>
+  <div class="date-axis" id="date-axis">
+    <span id="date-start">—</span>
+    <span id="date-end">—</span>
   </div>
-
-  <!-- Row 2: Bar chart (left) + Line chart (right) -->
-  <div class="card">
-    <div class="card-title">VARS 排名</div>
-    <div class="chart-wrap bar-wrap">
-      <canvas id="bar-chart"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">近期走势（最近 10 个交易日）</div>
-    <div class="chart-wrap line-wrap">
-      <canvas id="line-chart"></canvas>
-    </div>
-  </div>
-
 </div>
 
 <footer>
-  <span>VARS formula: <i>Σ(ΔClose/ATR)_asset − Σ(ΔClose/ATR)_SPY</i>，参考 mattishenner &amp; Jeff Sun</span>
-  <span>数据来源：<a href="https://www.tiingo.com" target="_blank">Tiingo</a></span>
+  <span>VARS: <i>Σ(ΔClose/ATR)<sub>asset</sub> − Σ(ΔClose/ATR)<sub>SPY</sub></i>，参考 mattishenner &amp; Jeff Sun</span>
+  <span>数据：<a href="https://www.tiingo.com" target="_blank">Tiingo</a></span>
   <span>每日北京时间 06:00 自动更新</span>
 </footer>
 
 <script>
-// ── Ticker color map ──────────────────────────────────────────────────────────
-const COLORS = {
-  RSP:  getComputedStyle(document.documentElement).getPropertyValue('--rsp').trim(),
-  QQQ:  getComputedStyle(document.documentElement).getPropertyValue('--qqq').trim(),
-  QQQE: getComputedStyle(document.documentElement).getPropertyValue('--qqqe').trim(),
-  IWM:  getComputedStyle(document.documentElement).getPropertyValue('--iwm').trim(),
-};
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function showStatus(msg, isError = false) {
   const el = document.getElementById('status');
@@ -222,147 +216,97 @@ function toBeiJing(isoStr) {
   });
 }
 
-function colorClass(v) {
-  if (v === null || v === undefined) return 'zero';
-  return v > 0 ? 'pos' : v < 0 ? 'neg' : 'zero';
+// ── SVG Histogram ─────────────────────────────────────────────────────────────
+// All histograms share the same maxAbsVal so magnitudes are comparable.
+const VB_W = 500, VB_H = 60;
+const ZERO_Y  = VB_H / 2;         // 30 — zero line
+const MAX_BAR = ZERO_Y - 4;       // 26px — max bar height each direction
+const N_BARS  = 25;
+const SLOT_W  = VB_W / N_BARS;    // 20px per slot
+const BAR_W   = SLOT_W - 2;       // 18px bar, 2px gap
+const POS_CLR = '#1a7f37';
+const NEG_CLR = '#cf222e';
+const LAST_POS = '#2da44e';        // slightly brighter for the latest bar
+const LAST_NEG = '#e5534b';
+
+function buildHistogramSVG(values, maxAbsVal) {
+  const lastIdx = values.length - 1;
+  const bars = values.map((v, i) => {
+    if (v === null || v === undefined || isNaN(v)) return '';
+    const isPos  = v >= 0;
+    const isLast = i === lastIdx;
+    const barH   = maxAbsVal > 0 ? (Math.abs(v) / maxAbsVal * MAX_BAR) : 0;
+    const x      = i * SLOT_W + 1;
+    const y      = isPos ? ZERO_Y - barH : ZERO_Y;
+    const fill   = isLast ? (isPos ? LAST_POS : LAST_NEG)
+                           : (isPos ? POS_CLR  : NEG_CLR);
+    const tip    = `${v >= 0 ? '+' : ''}${v.toFixed(4)}`;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}" rx="1"><title>${tip}</title></rect>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 ${VB_W} ${VB_H}" preserveAspectRatio="none">
+    <line x1="0" y1="${ZERO_Y}" x2="${VB_W}" y2="${ZERO_Y}" stroke="#d0d7de" stroke-width="1"/>
+    ${bars}
+  </svg>`;
 }
 
-// ── Chart defaults ────────────────────────────────────────────────────────────
-Chart.defaults.color          = '#7d8590';
-Chart.defaults.borderColor    = '#30363d';
-Chart.defaults.font.family    = '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-Chart.defaults.font.size      = 11;
+// ── Render rows ───────────────────────────────────────────────────────────────
+function renderDashboard(latest) {
+  const series  = latest.vars_series ?? {};
+  const vars    = latest.vars;
+  const tickers = Object.keys(vars);
 
-// ── Render ticker value cards ─────────────────────────────────────────────────
-function renderCards(vars) {
-  const container = document.getElementById('ticker-cards');
-  const sorted = Object.entries(vars).sort((a, b) => b[1] - a[1]);
-  container.innerHTML = sorted.map(([ticker, value]) => `
-    <div class="ticker-card">
-      <div class="name" style="color:${COLORS[ticker] ?? 'inherit'}">${ticker}</div>
-      <div class="value ${colorClass(value)}">${value >= 0 ? '+' : ''}${value.toFixed(2)}</div>
-    </div>
-  `).join('');
-}
+  // Shared Y-scale: max |VARS| across all tickers and all 25 days
+  const allVals = tickers.flatMap(t => series[t] ?? []).filter(v => v !== null);
+  const maxAbs  = Math.max(...allVals.map(Math.abs), 0.01);
 
-// ── Bar chart (ranked) ────────────────────────────────────────────────────────
-function renderBarChart(vars) {
-  const sorted   = Object.entries(vars).sort((a, b) => b[1] - a[1]);
-  const labels   = sorted.map(([t]) => t);
-  const values   = sorted.map(([, v]) => v);
-  const bgColors = labels.map(t => COLORS[t] ?? '#58a6ff');
+  const tbody = document.getElementById('ticker-body');
 
-  new Chart(document.getElementById('bar-chart'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data:            values,
-        backgroundColor: bgColors.map(c => c + 'cc'),
-        borderColor:     bgColors,
-        borderWidth:     1,
-        borderRadius:    4,
-      }],
-    },
-    options: {
-      indexAxis:   'y',
-      responsive:  true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` VARS: ${ctx.parsed.x >= 0 ? '+' : ''}${ctx.parsed.x.toFixed(4)}`,
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: { color: '#30363d' },
-          ticks: { callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) },
-        },
-        y: {
-          grid: { display: false },
-          ticks: { font: { weight: '600', size: 12 } },
-        },
-      },
-    },
-  });
-}
+  // Sort by current VARS descending
+  const sorted = [...tickers].sort((a, b) => vars[b] - vars[a]);
 
-// ── Line chart (10-day history) ───────────────────────────────────────────────
-function renderLineChart(summary) {
-  if (!summary.dates || summary.dates.length < 2) return;
+  tbody.innerHTML = sorted.map(ticker => {
+    const val    = vars[ticker];
+    const cls    = val > 0 ? 'pos' : val < 0 ? 'neg' : 'zero';
+    const label  = (val >= 0 ? '+' : '') + val.toFixed(2);
+    const values = series[ticker] ?? [];
+    const svg    = buildHistogramSVG(values, maxAbs);
 
-  const shortLabels = summary.dates.map(d => d.slice(5));  // MM-DD
-  const datasets = Object.entries(summary.tickers).map(([ticker, values]) => ({
-    label:           ticker,
-    data:            values,
-    borderColor:     COLORS[ticker] ?? '#58a6ff',
-    backgroundColor: 'transparent',
-    borderWidth:     2,
-    pointRadius:     3,
-    pointHoverRadius: 5,
-    tension:         0.3,
-    spanGaps:        true,
-  }));
+    return `<tr class="ticker-row">
+      <td class="col-name"><span class="ticker-name">${ticker}</span></td>
+      <td class="col-value"><span class="ticker-value ${cls}">${label}</span></td>
+      <td class="histogram-cell">
+        <div class="histogram-wrap">${svg}</div>
+      </td>
+    </tr>`;
+  }).join('');
 
-  new Chart(document.getElementById('line-chart'), {
-    type: 'line',
-    data: { labels: shortLabels, datasets },
-    options: {
-      responsive:  true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: { boxWidth: 12, padding: 12 },
-        },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}${ctx.parsed.y?.toFixed(4) ?? 'N/A'}`,
-          },
-        },
-      },
-      scales: {
-        x: { grid: { color: '#30363d' } },
-        y: {
-          grid: { color: '#30363d' },
-          ticks: { callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) },
-        },
-      },
-    },
-  });
+  // Date axis labels
+  const dates = series.dates ?? [];
+  if (dates.length >= 2) {
+    document.getElementById('date-start').textContent = dates[0].slice(5);    // MM-DD
+    document.getElementById('date-end').textContent   = dates[dates.length - 1].slice(5);
+  }
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 (async () => {
   try {
-    const [latest, summary] = await Promise.all([
-      fetch('./data/latest.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-      fetch('./data/history_summary.json').then(r => r.json()).catch(() => ({ dates: [], tickers: {} })),
-    ]);
+    const latest = await fetch('./data/latest.json')
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
 
-    // No data yet (first deploy)
     if (!latest.date) {
       showStatus('数据尚未生成，等待首次 GitHub Actions 运行（北京时间每日 06:00）。');
       return;
     }
 
-    // Fill header meta
     document.getElementById('data-date').textContent   = latest.date;
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('p-atr').textContent       = latest.params.atr_period;
     document.getElementById('p-lb').textContent        = latest.params.lookback;
 
-    // Show main grid
-    document.getElementById('main-grid').style.display = 'grid';
-
-    renderCards(latest.vars);
-    renderBarChart(latest.vars);
-    renderLineChart(summary);
+    document.getElementById('dashboard').style.display = 'block';
+    renderDashboard(latest);
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);
