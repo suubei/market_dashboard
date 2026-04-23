@@ -239,10 +239,6 @@ function renderDashboard(latest) {
   const vars    = latest.vars;
   const tickers = Object.keys(vars);
 
-  // Shared Y-scale: max |VARS| across all tickers and all 25 days
-  const allVals = tickers.flatMap(t => series[t] ?? []).filter(v => v !== null);
-  const maxAbs  = Math.max(...allVals.map(Math.abs), 0.01);
-
   const tbody = document.getElementById('ticker-body');
 
   // Sort by current VARS descending
@@ -253,6 +249,8 @@ function renderDashboard(latest) {
     const cls    = val > 0 ? 'pos' : val < 0 ? 'neg' : 'zero';
     const label  = (val >= 0 ? '+' : '') + val.toFixed(2);
     const values = series[ticker] ?? [];
+    // Each ticker uses its own Y-scale
+    const maxAbs = Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
     const svg    = buildHistogramSVG(values, maxAbs);
 
     return `<tr class="ticker-row">
