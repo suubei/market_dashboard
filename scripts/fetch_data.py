@@ -8,7 +8,6 @@ VARS formula (mattishenner / Jeff Sun):
   ATR uses Wilder's smoothing: ewm(com = period-1, adjust=False)
 """
 
-import csv
 import json
 import logging
 import os
@@ -36,7 +35,6 @@ FETCH_DAYS   = 130   # calendar days; enough for ATR warm-up + lookback window
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 HISTORY_DIR = os.path.join(DATA_DIR, "history")
-CSV_PATH    = os.path.join(DATA_DIR, "vars_history.csv")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 
 
@@ -123,14 +121,6 @@ def compute_vars(data: dict) -> tuple:
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
-def load_history() -> list:
-    """Read vars_history.csv; returns list of row dicts."""
-    if not os.path.exists(CSV_PATH):
-        return []
-    with open(CSV_PATH, newline="") as f:
-        return list(csv.DictReader(f))
-
-
 def save_data(trade_date: date, vars_result: dict, vars_series: dict) -> None:
     os.makedirs(HISTORY_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
@@ -143,24 +133,13 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict) -> None:
         "vars_series": vars_series,
     }
 
-    # Per-day JSON snapshot
+    # Per-day JSON snapshot (serves as historical archive)
     with open(os.path.join(HISTORY_DIR, f"{date_str}.json"), "w") as f:
         json.dump(payload, f, indent=2)
 
     # latest.json – what the dashboard reads
     with open(LATEST_PATH, "w") as f:
         json.dump(payload, f, indent=2)
-
-    # Append to CSV (skip if date already present)
-    existing_dates = {row["date"] for row in load_history()}
-    csv_is_new = not os.path.exists(CSV_PATH)
-    if date_str not in existing_dates:
-        with open(CSV_PATH, "a", newline="") as f:
-            writer = csv.writer(f)
-            if csv_is_new:
-                writer.writerow(["date", "ticker", "vars"])
-            for ticker, value in payload["vars"].items():
-                writer.writerow([date_str, ticker, value])
 
     log.info("Saved  date=%s  vars=%s", date_str, payload["vars"])
 
