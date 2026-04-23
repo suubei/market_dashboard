@@ -137,16 +137,6 @@
       overflow: visible;
     }
 
-    /* Date axis labels under the histograms */
-    .date-axis {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.65rem;
-      color: var(--muted);
-      margin-top: 2px;
-      padding: 0 1px;
-    }
-
     /* ── Footer ── */
     footer {
       max-width: 900px;
@@ -184,10 +174,6 @@
     </colgroup>
     <tbody id="ticker-body"></tbody>
   </table>
-  <div class="date-axis" id="date-axis">
-    <span id="date-start">—</span>
-    <span id="date-end">—</span>
-  </div>
 </div>
 
 <footer>
@@ -278,12 +264,6 @@ function renderDashboard(latest) {
     </tr>`;
   }).join('');
 
-  // Date axis labels
-  const dates = series.dates ?? [];
-  if (dates.length >= 2) {
-    document.getElementById('date-start').textContent = dates[0].slice(5);    // MM-DD
-    document.getElementById('date-end').textContent   = dates[dates.length - 1].slice(5);
-  }
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
