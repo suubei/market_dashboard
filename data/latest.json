@@ -1,6 +1,6 @@
 {
-  "date": null,
-  "updated_at": "2026-04-23T11:44:06Z",
+  "date": "2026-04-23",
+  "updated_at": "2026-04-23T12:11:29Z",
   "params": {
     "atr_period": 14,
     "lookback": 25
@@ -175,5 +175,13 @@
       -0.3548,
       -0.5411
     ]
+  },
+  "daily_change": {
+    "SPY": 1.01,
+    "RSP": -0.04,
+    "QQQ": 1.67,
+    "QQQE": 1.06,
+    "IWM": 0.72,
+    "DIA": 0.69
   }
 }
