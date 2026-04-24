@@ -84,6 +84,11 @@
     .ticker-table thead th.col-atr-low,
     .ticker-table thead th.col-atr-high { text-align: right; padding-right: 8px; white-space: nowrap; }
     .ticker-table thead th.col-chg { text-align: center; padding-right: 0; }
+    .ticker-table thead th.sortable { cursor: pointer; user-select: none; }
+    .ticker-table thead th.sortable:hover { background: #d8dde3; }
+    .ticker-table thead th.sort-active { color: var(--text); }
+    .sort-arrow { margin-left: 3px; font-size: 0.65rem; opacity: 0.5; }
+    .sort-active .sort-arrow { opacity: 1; }
 
     .ticker-row {
       height: 32px;
@@ -160,10 +165,11 @@
     </colgroup>
     <thead><tr>
       <th class="col-market">Market</th><th class="col-index">Symbol</th>
-      <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
-      <th class="col-chg">% Daily Change</th>
-      <th class="col-atr-low">52WL Dist (ATR%)</th>
-      <th class="col-atr-high">52WH Dist (ATR%)</th>
+      <th class="col-rs">1-Month RS</th>
+      <th class="col-sts sortable" data-sort="sts" data-tbody="ticker-body">RS_STS%<span class="sort-arrow"></span></th>
+      <th class="col-chg sortable" data-sort="chg" data-tbody="ticker-body">% Daily Change<span class="sort-arrow"></span></th>
+      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
+      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
     </tr></thead>
     <tbody id="ticker-body"></tbody>
   </table>
@@ -176,10 +182,11 @@
     </colgroup>
     <thead><tr>
       <th class="col-market">Sub-Market</th><th class="col-index">Symbol</th>
-      <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
-      <th class="col-chg">% Daily Change</th>
-      <th class="col-atr-low">52WL Dist (ATR%)</th>
-      <th class="col-atr-high">52WH Dist (ATR%)</th>
+      <th class="col-rs">1-Month RS</th>
+      <th class="col-sts sortable" data-sort="sts" data-tbody="sub-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
+      <th class="col-chg sortable" data-sort="chg" data-tbody="sub-ticker-body">% Daily Change<span class="sort-arrow"></span></th>
+      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sub-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
+      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sub-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
     </tr></thead>
     <tbody id="sub-ticker-body"></tbody>
   </table>
@@ -192,10 +199,11 @@
     </colgroup>
     <thead><tr>
       <th class="col-market">Sector</th><th class="col-index">Symbol</th>
-      <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
-      <th class="col-chg">% Daily Change</th>
-      <th class="col-atr-low">52WL Dist (ATR%)</th>
-      <th class="col-atr-high">52WH Dist (ATR%)</th>
+      <th class="col-rs">1-Month RS</th>
+      <th class="col-sts sortable" data-sort="sts" data-tbody="sector-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
+      <th class="col-chg sortable" data-sort="chg" data-tbody="sector-ticker-body">% Daily Change<span class="sort-arrow"></span></th>
+      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sector-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
+      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sector-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
     </tr></thead>
     <tbody id="sector-ticker-body"></tbody>
   </table>
@@ -316,15 +324,53 @@ function buildChgBarSVG(val, mode, maxAbs) {
     ${centerLine}</svg>`;
 }
 
+// ── Sort state ────────────────────────────────────────────────────────────────
+const sortState = {};   // { tbodyId: { col, dir } }  dir: -1=desc, 1=asc
+let _series = {}, _changes = {}, _atrMetrics = {};
+
+const TBODY_TO_ORDER = {};   // populated after constants are defined
+
+function getSortValue(ticker, col, series, changes, atrMetrics) {
+  if (col === 'sts') {
+    const vals = (series[ticker] ?? []).slice(-N_BARS);
+    if (!vals.length) return -Infinity;
+    const pr = percentRank(vals, vals[vals.length - 1]);
+    return pr ?? -Infinity;
+  }
+  if (col === 'chg')     return changes[ticker]                ?? -Infinity;
+  if (col === 'atrLow')  return atrMetrics?.[ticker]?.atr_low  ?? -Infinity;
+  if (col === 'atrHigh') return atrMetrics?.[ticker]?.atr_high ?? Infinity;
+  return 0;
+}
+
+function updateSortArrows() {
+  document.querySelectorAll('th.sortable').forEach(th => {
+    const tbodyId = th.dataset.tbody;
+    const col     = th.dataset.sort;
+    const ss      = sortState[tbodyId];
+    const arrow   = th.querySelector('.sort-arrow');
+    const active  = ss?.col === col;
+    th.classList.toggle('sort-active', active);
+    arrow.textContent = active ? (ss.dir === -1 ? ' ▼' : ' ▲') : '';
+  });
+}
+
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
-  const allChg  = displayOrder.map(({ ticker }) => changes[ticker]).filter(v => v != null);
+  const ss    = sortState[tbodyId];
+  const order = ss
+    ? [...displayOrder].sort((a, b) =>
+        (getSortValue(a.ticker, ss.col, series, changes, atrMetrics) -
+         getSortValue(b.ticker, ss.col, series, changes, atrMetrics)) * ss.dir)
+    : displayOrder;
+
+  const allChg  = order.map(({ ticker }) => changes[ticker]).filter(v => v != null);
   const hasPos  = allChg.some(v => v > 0);
   const hasNeg  = allChg.some(v => v < 0);
   const maxAbs  = Math.max(...allChg.map(Math.abs), 0.01);
   const chgMode = (hasPos && hasNeg) ? 'butterfly' : hasPos ? 'allPos' : 'allNeg';
 
-  document.getElementById(tbodyId).innerHTML = displayOrder.map(({ ticker, market }) => {
+  document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
     const isSpy  = ticker === 'SPY';
     const raw    = isSpy ? Array(N_BARS).fill(0) : (series[ticker] ?? []);
     const values = raw.slice(-N_BARS);
@@ -388,12 +434,30 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('dashboard').style.display = 'block';
 
-    const series     = latest.vars_series  ?? {};
-    const changes    = latest.daily_change ?? {};
-    const atrMetrics = latest.atr_metrics  ?? {};
-    renderSection(DISPLAY_ORDER,        'ticker-body',        series, changes, atrMetrics);
-    renderSection(SUB_DISPLAY_ORDER,    'sub-ticker-body',    series, changes, atrMetrics);
-    renderSection(SECTOR_DISPLAY_ORDER, 'sector-ticker-body', series, changes, atrMetrics);
+    _series     = latest.vars_series  ?? {};
+    _changes    = latest.daily_change ?? {};
+    _atrMetrics = latest.atr_metrics  ?? {};
+
+    TBODY_TO_ORDER['ticker-body']        = DISPLAY_ORDER;
+    TBODY_TO_ORDER['sub-ticker-body']    = SUB_DISPLAY_ORDER;
+    TBODY_TO_ORDER['sector-ticker-body'] = SECTOR_DISPLAY_ORDER;
+
+    renderSection(DISPLAY_ORDER,        'ticker-body',        _series, _changes, _atrMetrics);
+    renderSection(SUB_DISPLAY_ORDER,    'sub-ticker-body',    _series, _changes, _atrMetrics);
+    renderSection(SECTOR_DISPLAY_ORDER, 'sector-ticker-body', _series, _changes, _atrMetrics);
+
+    document.querySelectorAll('th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const tbodyId = th.dataset.tbody;
+        const col     = th.dataset.sort;
+        const cur     = sortState[tbodyId];
+        sortState[tbodyId] = (cur?.col === col)
+          ? { col, dir: -cur.dir }
+          : { col, dir: -1 };
+        renderSection(TBODY_TO_ORDER[tbodyId], tbodyId, _series, _changes, _atrMetrics);
+        updateSortArrows();
+      });
+    });
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);
