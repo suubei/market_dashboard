@@ -34,7 +34,7 @@ TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM", "DIA",
                 "XLRE", "XLU", "XLV", "XLF", "XLP", "XLB",
                 "XLE", "XLI", "XLY", "XLC", "XLK"]
 ATR_PERIOD   = 14
-LOOKBACK     = 25
+LOOKBACK     = 50
 FETCH_DAYS   = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")

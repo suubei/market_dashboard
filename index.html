@@ -326,7 +326,8 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
 
   document.getElementById(tbodyId).innerHTML = displayOrder.map(({ ticker, market }) => {
     const isSpy  = ticker === 'SPY';
-    const values = isSpy ? Array(N_BARS).fill(0) : (series[ticker] ?? []);
+    const raw    = isSpy ? Array(N_BARS).fill(0) : (series[ticker] ?? []);
+    const values = raw.slice(-N_BARS);
 
     // RS_STS%
     let stsHtml = '<span class="sts-value">—</span>';
