@@ -442,15 +442,9 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
     TBODY_TO_ORDER['sub-ticker-body']    = SUB_DISPLAY_ORDER;
     TBODY_TO_ORDER['sector-ticker-body'] = SECTOR_DISPLAY_ORDER;
 
-    // Default: sort by RS_STS% descending
-    ['ticker-body', 'sub-ticker-body', 'sector-ticker-body'].forEach(id => {
-      sortState[id] = { col: 'sts', dir: -1 };
-    });
-
     renderSection(DISPLAY_ORDER,        'ticker-body',        _series, _changes, _atrMetrics);
     renderSection(SUB_DISPLAY_ORDER,    'sub-ticker-body',    _series, _changes, _atrMetrics);
     renderSection(SECTOR_DISPLAY_ORDER, 'sector-ticker-body', _series, _changes, _atrMetrics);
-    updateSortArrows();
 
     document.querySelectorAll('th.sortable').forEach(th => {
       th.addEventListener('click', () => {
