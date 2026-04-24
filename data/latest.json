@@ -1,6 +1,6 @@
 {
-  "date": null,
-  "updated_at": "2026-04-24T05:47:46Z",
+  "date": "2026-04-23",
+  "updated_at": "2026-04-24T06:45:36Z",
   "params": {
     "atr_period": 14,
     "lookback": 50
@@ -1255,95 +1255,95 @@
   "atr_metrics": {
     "SPY": {
       "atr_low": 27.11,
-      "atr_high": 0.31
+      "atr_high": -0.31
     },
     "RSP": {
       "atr_low": 19.95,
-      "atr_high": 0.65
+      "atr_high": -0.65
     },
     "QQQ": {
       "atr_low": 27.26,
-      "atr_high": 0.35
+      "atr_high": -0.35
     },
     "QQQE": {
       "atr_low": 21.18,
-      "atr_high": 0.09
+      "atr_high": -0.09
     },
     "IWM": {
       "atr_low": 25.25,
-      "atr_high": 0.36
+      "atr_high": -0.36
     },
     "DIA": {
       "atr_low": 20.08,
-      "atr_high": 1.06
+      "atr_high": -1.06
     },
     "IJS": {
       "atr_low": 29.37,
-      "atr_high": 0.17
+      "atr_high": -0.17
     },
     "IJT": {
       "atr_low": 20.88,
-      "atr_high": 0.34
+      "atr_high": -0.34
     },
     "IJJ": {
       "atr_low": 19.27,
-      "atr_high": 0.88
+      "atr_high": -0.88
     },
     "IJK": {
       "atr_low": 19.6,
-      "atr_high": 0.74
+      "atr_high": -0.74
     },
     "IVE": {
       "atr_low": 25.13,
-      "atr_high": 0.19
+      "atr_high": -0.19
     },
     "IVW": {
       "atr_low": 24.83,
-      "atr_high": 0.59
+      "atr_high": -0.59
     },
     "XLRE": {
       "atr_low": 8.76,
-      "atr_high": 1.08
+      "atr_high": -1.08
     },
     "XLU": {
       "atr_low": 12.46,
-      "atr_high": 1.63
+      "atr_high": -1.63
     },
     "XLV": {
       "atr_low": 10.72,
-      "atr_high": 5.74
+      "atr_high": -5.74
     },
     "XLF": {
       "atr_low": 6.42,
-      "atr_high": 4.83
+      "atr_high": -4.83
     },
     "XLP": {
       "atr_low": 8.55,
-      "atr_high": 4.82
+      "atr_high": -4.82
     },
     "XLB": {
       "atr_low": 18.43,
-      "atr_high": 1.84
+      "atr_high": -1.84
     },
     "XLE": {
       "atr_low": 18.34,
-      "atr_high": 3.55
+      "atr_high": -3.55
     },
     "XLI": {
       "atr_low": 21.12,
-      "atr_high": 1.29
+      "atr_high": -1.29
     },
     "XLY": {
       "atr_low": 12.64,
-      "atr_high": 2.69
+      "atr_high": -2.69
     },
     "XLC": {
       "atr_low": 22.07,
-      "atr_high": 1.46
+      "atr_high": -1.46
     },
     "XLK": {
       "atr_low": 29.75,
-      "atr_high": 0.73
+      "atr_high": -0.73
     }
   }
 }
