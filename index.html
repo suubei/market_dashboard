@@ -60,11 +60,13 @@
 
     .ticker-table { width: 100%; border-collapse: collapse; }
 
-    .col-market { width: 100px; }
-    .col-index  { width: 80px; }
-    .col-rs     { width: 90px; }
-    .col-sts    { width: 80px; }
-    .col-chg    { width: 90px; }
+    .col-market   { width: 100px; }
+    .col-index    { width: 80px; }
+    .col-rs       { width: 90px; }
+    .col-sts      { width: 80px; }
+    .col-chg      { width: 90px; }
+    .col-atr-low  { width: 80px; }
+    .col-atr-high { width: 80px; }
 
     .ticker-table thead th {
       font-size: 0.72rem;
@@ -78,7 +80,10 @@
       border-bottom: 1px solid var(--border);
       text-align: center;
     }
-    .ticker-table thead th.col-chg { text-align: center; }
+    .ticker-table thead th.col-chg,
+    .ticker-table thead th.col-atr-low,
+    .ticker-table thead th.col-atr-high { text-align: right; padding-right: 8px; }
+    .ticker-table thead th.col-chg { text-align: center; padding-right: 0; }
 
     .ticker-row {
       height: 32px;
@@ -103,6 +108,10 @@
 
     .sts-cell { text-align: center; }
     .sts-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+
+    .atr-cell  { text-align: right; padding-right: 8px; }
+    .atr-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+    .atr-new-high { color: var(--pos); }
 
     .chg-cell { padding: 0 !important; }
     .chg-wrap { position: relative; padding: 0 6px; text-align: right; }
@@ -147,11 +156,14 @@
     <colgroup>
       <col class="col-market"><col class="col-index">
       <col class="col-rs"><col class="col-sts"><col class="col-chg">
+      <col class="col-atr-low"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">Market</th><th class="col-index">Symbol</th>
       <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
       <th class="col-chg">% Daily Change</th>
+      <th class="col-atr-low">ATR%×<br>(52W Low)</th>
+      <th class="col-atr-high">ATR%×<br>(52W High)</th>
     </tr></thead>
     <tbody id="ticker-body"></tbody>
   </table>
@@ -160,11 +172,14 @@
     <colgroup>
       <col class="col-market"><col class="col-index">
       <col class="col-rs"><col class="col-sts"><col class="col-chg">
+      <col class="col-atr-low"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">Sub-Market</th><th class="col-index">Symbol</th>
       <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
       <th class="col-chg">% Daily Change</th>
+      <th class="col-atr-low">ATR%×<br>(52W Low)</th>
+      <th class="col-atr-high">ATR%×<br>(52W High)</th>
     </tr></thead>
     <tbody id="sub-ticker-body"></tbody>
   </table>
@@ -173,11 +188,14 @@
     <colgroup>
       <col class="col-market"><col class="col-index">
       <col class="col-rs"><col class="col-sts"><col class="col-chg">
+      <col class="col-atr-low"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">Sector</th><th class="col-index">Symbol</th>
       <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
       <th class="col-chg">% Daily Change</th>
+      <th class="col-atr-low">ATR%×<br>(52W Low)</th>
+      <th class="col-atr-high">ATR%×<br>(52W High)</th>
     </tr></thead>
     <tbody id="sector-ticker-body"></tbody>
   </table>
@@ -299,7 +317,7 @@ function buildChgBarSVG(val, mode, maxAbs) {
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
-function renderSection(displayOrder, tbodyId, series, changes) {
+function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
   const allChg  = displayOrder.map(({ ticker }) => changes[ticker]).filter(v => v != null);
   const hasPos  = allChg.some(v => v > 0);
   const hasNeg  = allChg.some(v => v < 0);
@@ -332,12 +350,24 @@ function renderSection(displayOrder, tbodyId, series, changes) {
     const chg     = changes[ticker] ?? null;
     const chgText = chg != null ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '—';
 
+    // ATR metrics
+    const m        = atrMetrics?.[ticker];
+    const atrLow   = m?.atr_low  ?? null;
+    const atrHigh  = m?.atr_high ?? null;
+    const atrLowHtml  = atrLow  != null ? `<span class="atr-value">${atrLow.toFixed(1)}</span>`  : '<span class="atr-value">—</span>';
+    const isNewHigh   = atrHigh != null && atrHigh < 0;
+    const atrHighHtml = atrHigh != null
+      ? `<span class="atr-value${isNewHigh ? ' atr-new-high' : ''}">${atrHigh.toFixed(1)}</span>`
+      : '<span class="atr-value">—</span>';
+
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
       <td class="rs-cell"><div class="histogram-wrap">${buildHistogramSVG(values, isSpy)}</div></td>
       <td class="sts-cell" style="${stsBg}">${stsHtml}</td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbs)}<span class="chg-text">${chgText}</span></div></td>
+      <td class="atr-cell">${atrLowHtml}</td>
+      <td class="atr-cell">${atrHighHtml}</td>
     </tr>`;
   }).join('');
 }
@@ -357,11 +387,12 @@ function renderSection(displayOrder, tbodyId, series, changes) {
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('dashboard').style.display = 'block';
 
-    const series  = latest.vars_series  ?? {};
-    const changes = latest.daily_change ?? {};
-    renderSection(DISPLAY_ORDER,     'ticker-body',     series, changes);
-    renderSection(SUB_DISPLAY_ORDER, 'sub-ticker-body', series, changes);
-    renderSection(SECTOR_DISPLAY_ORDER, 'sector-ticker-body', series, changes);
+    const series     = latest.vars_series  ?? {};
+    const changes    = latest.daily_change ?? {};
+    const atrMetrics = latest.atr_metrics  ?? {};
+    renderSection(DISPLAY_ORDER,        'ticker-body',        series, changes, atrMetrics);
+    renderSection(SUB_DISPLAY_ORDER,    'sub-ticker-body',    series, changes, atrMetrics);
+    renderSection(SECTOR_DISPLAY_ORDER, 'sector-ticker-body', series, changes, atrMetrics);
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);

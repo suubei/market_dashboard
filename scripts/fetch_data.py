@@ -35,10 +35,9 @@ TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM", "DIA",
                 "XLE", "XLI", "XLY", "XLC", "XLK"]
 ATR_PERIOD   = 14
 LOOKBACK     = 25
-FETCH_DAYS   = 130   # calendar days; enough for ATR warm-up + lookback window
+FETCH_DAYS   = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
-HISTORY_DIR = os.path.join(DATA_DIR, "history")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 
 
@@ -98,6 +97,37 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
     return tr.ewm(com=period - 1, adjust=False).mean()
 
 
+def compute_atr_metrics(data: dict) -> dict:
+    """
+    For each ticker compute:
+      atr_low  = ATR% multiple from 52W low
+               = ((Close - Low_52w) / Low_52w) / (ATR / Close)
+      atr_high = ATR% multiple from 52W high  (negative = new 52W high)
+               = ((High_52w - Close) / High_52w) / (ATR / Close)
+    """
+    metrics = {}
+    for ticker in TICKERS:
+        df    = data[ticker]
+        close = df["adjClose"]
+        atr   = wilder_atr(df, ATR_PERIOD)
+
+        current  = float(close.iloc[-1])
+        atr_val  = float(atr.iloc[-1])
+        if atr_val == 0 or current == 0:
+            continue
+
+        window   = close.iloc[-252:]          # up to 252 trading days ≈ 52 weeks
+        low_52w  = float(window.min())
+        high_52w = float(window.max())
+        atr_pct  = atr_val / current          # ATR as fraction of price
+
+        metrics[ticker] = {
+            "atr_low":  round((current - low_52w)  / low_52w  / atr_pct, 2),
+            "atr_high": round((high_52w - current) / high_52w / atr_pct, 2),
+        }
+    return metrics
+
+
 def compute_daily_changes(data: dict) -> dict:
     """Return {ticker: daily_pct_change} for all tickers including benchmark."""
     changes = {}
@@ -143,8 +173,9 @@ def compute_vars(data: dict) -> tuple:
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
-def save_data(trade_date: date, vars_result: dict, vars_series: dict, daily_changes: dict) -> None:
-    os.makedirs(HISTORY_DIR, exist_ok=True)
+def save_data(trade_date: date, vars_result: dict, vars_series: dict,
+              daily_changes: dict, atr_metrics: dict) -> None:
+    os.makedirs(DATA_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
 
     payload = {
@@ -154,13 +185,9 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict, daily_chan
         "vars":         vars_result,
         "vars_series":  vars_series,
         "daily_change": daily_changes,
+        "atr_metrics":  atr_metrics,
     }
 
-    # Per-day JSON snapshot (serves as historical archive)
-    with open(os.path.join(HISTORY_DIR, f"{date_str}.json"), "w") as f:
-        json.dump(payload, f, indent=2)
-
-    # latest.json – what the dashboard reads
     with open(LATEST_PATH, "w") as f:
         json.dump(payload, f, indent=2)
 
@@ -188,8 +215,9 @@ def main() -> None:
 
     vars_result, vars_series = compute_vars(data)
     daily_changes = compute_daily_changes(data)
+    atr_metrics   = compute_atr_metrics(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
-    save_data(last_day, vars_result, vars_series, daily_changes)
+    save_data(last_day, vars_result, vars_series, daily_changes, atr_metrics)
 
 
 if __name__ == "__main__":
