@@ -108,14 +108,10 @@
     .ticker-symbol { font-size: 0.88rem; font-weight: 700; }
 
     .rs-cell { line-height: 0; }
-    .histogram-wrap { line-height: 0; }
-    .histogram-wrap svg { display: block; width: 100%; height: 32px; }
+    .rs-cell svg { display: block; width: 100%; height: 32px; }
 
-    .sts-cell { text-align: right; padding-right: 8px; }
-    .sts-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
-
-    .atr-cell  { text-align: right; padding-right: 8px; }
-    .atr-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+    .sts-cell, .atr-cell { text-align: right; padding-right: 8px; }
+    .num-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
     .atr-new-high { color: var(--pos); }
 
     .chg-cell { padding: 0 !important; }
@@ -328,8 +324,6 @@ function buildChgBarSVG(val, mode, maxAbs) {
 const sortState = {};   // { tbodyId: { col, dir } }  dir: -1=desc, 1=asc
 let _series = {}, _changes = {}, _atrMetrics = {};
 
-const TBODY_TO_ORDER = {};   // populated after constants are defined
-
 function getSortValue(ticker, col, series, changes, atrMetrics) {
   if (col === 'sts') {
     const vals = (series[ticker] ?? []).slice(-N_BARS);
@@ -376,13 +370,11 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
     const values = raw.slice(-N_BARS);
 
     // RS_STS%
-    let stsHtml = '<span class="sts-value">—</span>';
+    let stsHtml = '<span class="num-value">—</span>';
     if (!isSpy && values.length) {
       const pr = percentRank(values, values[values.length - 1]);
-      if (pr !== null) {
-        const pct = Math.round(pr * 100);
-        stsHtml = `<span class="sts-value">${pct}%</span>`;
-      }
+      if (pr !== null)
+        stsHtml = `<span class="num-value">${Math.round(pr * 100)}%</span>`;
     }
 
     // % Daily Change
@@ -390,19 +382,18 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
     const chgText = chg != null ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '—';
 
     // ATR metrics
-    const m        = atrMetrics?.[ticker];
-    const atrLow   = m?.atr_low  ?? null;
-    const atrHigh  = m?.atr_high ?? null;
-    const atrLowHtml  = atrLow  != null ? `<span class="atr-value">${atrLow.toFixed(1)}</span>`  : '<span class="atr-value">—</span>';
-    const isNewHigh   = atrHigh != null && atrHigh > 0;
+    const m       = atrMetrics?.[ticker];
+    const atrLow  = m?.atr_low  ?? null;
+    const atrHigh = m?.atr_high ?? null;
+    const atrLowHtml  = atrLow  != null ? `<span class="num-value">${atrLow.toFixed(1)}</span>`  : '<span class="num-value">—</span>';
     const atrHighHtml = atrHigh != null
-      ? `<span class="atr-value${isNewHigh ? ' atr-new-high' : ''}">${atrHigh.toFixed(1)}</span>`
-      : '<span class="atr-value">—</span>';
+      ? `<span class="num-value${atrHigh > 0 ? ' atr-new-high' : ''}">${atrHigh.toFixed(1)}</span>`
+      : '<span class="num-value">—</span>';
 
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
-      <td class="rs-cell"><div class="histogram-wrap">${buildHistogramSVG(values, isSpy)}</div></td>
+      <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="sts-cell">${stsHtml}</td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbs)}<span class="chg-text">${chgText}</span></div></td>
       <td class="atr-cell">${atrLowHtml}</td>
@@ -430,22 +421,19 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
     _changes    = latest.daily_change ?? {};
     _atrMetrics = latest.atr_metrics  ?? {};
 
-    TBODY_TO_ORDER['ticker-body']        = DISPLAY_ORDER;
-    TBODY_TO_ORDER['sub-ticker-body']    = SUB_DISPLAY_ORDER;
-    TBODY_TO_ORDER['sector-ticker-body'] = SECTOR_DISPLAY_ORDER;
+    const TBODY_TO_ORDER = {
+      'ticker-body':        DISPLAY_ORDER,
+      'sub-ticker-body':    SUB_DISPLAY_ORDER,
+      'sector-ticker-body': SECTOR_DISPLAY_ORDER,
+    };
 
-    renderSection(DISPLAY_ORDER,        'ticker-body',        _series, _changes, _atrMetrics);
-    renderSection(SUB_DISPLAY_ORDER,    'sub-ticker-body',    _series, _changes, _atrMetrics);
-    renderSection(SECTOR_DISPLAY_ORDER, 'sector-ticker-body', _series, _changes, _atrMetrics);
+    Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id, _series, _changes, _atrMetrics));
 
     document.querySelectorAll('th.sortable').forEach(th => {
       th.addEventListener('click', () => {
-        const tbodyId = th.dataset.tbody;
-        const col     = th.dataset.sort;
-        const cur     = sortState[tbodyId];
-        sortState[tbodyId] = (cur?.col === col)
-          ? { col, dir: -cur.dir }
-          : { col, dir: -1 };
+        const { tbody: tbodyId, sort: col } = th.dataset;
+        const cur = sortState[tbodyId];
+        sortState[tbodyId] = cur?.col === col ? { col, dir: -cur.dir } : { col, dir: -1 };
         renderSection(TBODY_TO_ORDER[tbodyId], tbodyId, _series, _changes, _atrMetrics);
         updateSortArrows();
       });

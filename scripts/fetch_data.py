@@ -12,7 +12,7 @@ import json
 import logging
 import os
 import sys
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, timedelta, datetime
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -99,11 +99,9 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
 
 def compute_atr_metrics(data: dict) -> dict:
     """
-    For each ticker compute:
-      atr_low  = ATR% multiple from 52W low
-               = ((Close - Low_52w) / Low_52w) / (ATR / Close)
-      atr_high = ATR% multiple from 52W high  (negative = new 52W high)
-               = ((High_52w - Close) / High_52w) / (ATR / Close)
+    For each ticker compute ATR%-normalised distance from 52W extremes:
+      atr_low  = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)  — higher = stronger
+      atr_high = ((Close - High_52w) / High_52w) / (ATR / Close)  — positive = new 52W high
     """
     metrics = {}
     for ticker in TICKERS:
