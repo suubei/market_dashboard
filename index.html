@@ -339,7 +339,7 @@ function getSortValue(ticker, col, series, changes, atrMetrics) {
   }
   if (col === 'chg')     return changes[ticker]                ?? -Infinity;
   if (col === 'atrLow')  return atrMetrics?.[ticker]?.atr_low  ?? -Infinity;
-  if (col === 'atrHigh') return atrMetrics?.[ticker]?.atr_high ?? Infinity;
+  if (col === 'atrHigh') return atrMetrics?.[ticker]?.atr_high ?? -Infinity;
   return 0;
 }
 
@@ -394,7 +394,7 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
     const atrLow   = m?.atr_low  ?? null;
     const atrHigh  = m?.atr_high ?? null;
     const atrLowHtml  = atrLow  != null ? `<span class="atr-value">${atrLow.toFixed(1)}</span>`  : '<span class="atr-value">—</span>';
-    const isNewHigh   = atrHigh != null && atrHigh < 0;
+    const isNewHigh   = atrHigh != null && atrHigh > 0;
     const atrHighHtml = atrHigh != null
       ? `<span class="atr-value${isNewHigh ? ' atr-new-high' : ''}">${atrHigh.toFixed(1)}</span>`
       : '<span class="atr-value">—</span>';

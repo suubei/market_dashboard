@@ -123,7 +123,7 @@ def compute_atr_metrics(data: dict) -> dict:
 
         metrics[ticker] = {
             "atr_low":  round((current - low_52w)  / low_52w  / atr_pct, 2),
-            "atr_high": round((high_52w - current) / high_52w / atr_pct, 2),
+            "atr_high": round((current - high_52w) / high_52w / atr_pct, 2),
         }
     return metrics
 
