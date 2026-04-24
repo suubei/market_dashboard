@@ -30,7 +30,9 @@ log = logging.getLogger(__name__)
 TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
 BENCHMARK    = "SPY"
 TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM", "DIA",
-                "IJS", "IJT", "IJJ", "IJK", "IVE", "IVW"]
+                "IJS", "IJT", "IJJ", "IJK", "IVE", "IVW",
+                "XLRE", "XLU", "XLV", "XLF", "XLP", "XLB",
+                "XLE", "XLI", "XLY", "XLC", "XLK"]
 ATR_PERIOD   = 14
 LOOKBACK     = 25
 FETCH_DAYS   = 130   # calendar days; enough for ATR warm-up + lookback window

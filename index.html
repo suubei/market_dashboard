@@ -168,6 +168,19 @@
     </tr></thead>
     <tbody id="sub-ticker-body"></tbody>
   </table>
+
+  <table class="ticker-table">
+    <colgroup>
+      <col class="col-market"><col class="col-index">
+      <col class="col-rs"><col class="col-sts"><col class="col-chg">
+    </colgroup>
+    <thead><tr>
+      <th class="col-market">Sector</th><th class="col-index">Symbol</th>
+      <th class="col-rs">1-Month RS</th><th class="col-sts">RS_STS%</th>
+      <th class="col-chg">% Daily Change</th>
+    </tr></thead>
+    <tbody id="sector-ticker-body"></tbody>
+  </table>
 </div>
 
 <footer>
@@ -217,6 +230,20 @@ const SUB_DISPLAY_ORDER = [
   { ticker: 'IJK', market: 'S&P Mid-Cap 400 Growth'   },
   { ticker: 'IVE', market: 'S&P Large-Cap 500 Value'  },
   { ticker: 'IVW', market: 'S&P Large-Cap 500 Growth' },
+];
+
+const SECTOR_DISPLAY_ORDER = [
+  { ticker: 'XLRE', market: 'Real Estate'            },
+  { ticker: 'XLU',  market: 'Utilities'              },
+  { ticker: 'XLV',  market: 'Health Care'            },
+  { ticker: 'XLF',  market: 'Financials'             },
+  { ticker: 'XLP',  market: 'Consumer Staples'       },
+  { ticker: 'XLB',  market: 'Materials'              },
+  { ticker: 'XLE',  market: 'Energy'                 },
+  { ticker: 'XLI',  market: 'Industrials'            },
+  { ticker: 'XLY',  market: 'Consumer Discretionary' },
+  { ticker: 'XLC',  market: 'Communication'          },
+  { ticker: 'XLK',  market: 'Technology'             },
 ];
 
 // ── SVG: VARS histogram ───────────────────────────────────────────────────────
@@ -334,6 +361,7 @@ function renderSection(displayOrder, tbodyId, series, changes) {
     const changes = latest.daily_change ?? {};
     renderSection(DISPLAY_ORDER,     'ticker-body',     series, changes);
     renderSection(SUB_DISPLAY_ORDER, 'sub-ticker-body', series, changes);
+    renderSection(SECTOR_DISPLAY_ORDER, 'sector-ticker-body', series, changes);
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);
