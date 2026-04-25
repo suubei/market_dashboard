@@ -33,9 +33,9 @@ BENCHMARK         = "SPY"
 ATR_PERIOD        = 14
 LOOKBACK          = 50
 FETCH_DAYS        = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
-INTER_REQUEST_SEC = 1.5   # delay between Tiingo requests
-BATCH_SIZE        = 40    # pause after every N requests to respect rate limit
-BATCH_PAUSE_SEC   = 90    # seconds to pause between batches
+INTER_REQUEST_SEC = 1     # delay between requests within a batch
+BATCH_SIZE        = 49    # Tiingo free tier: 50 requests/hour; use 49 to be safe
+BATCH_PAUSE_SEC   = 3660  # 61 min — wait for the hourly window to reset
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
