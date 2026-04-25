@@ -94,9 +94,11 @@ def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
             wait = 15 * (attempt + 1)
             log.warning("  429 rate limit for %s, retrying in %ds …", ticker, wait)
             time.sleep(wait)
-            continue
-        resp.raise_for_status()
-        break
+        else:
+            resp.raise_for_status()
+            break
+    else:
+        raise RuntimeError(f"429 rate limit not resolved for {ticker} after 5 retries")
     raw = resp.json()
     if not raw:
         raise ValueError(f"Tiingo returned no data for {ticker} ({start} – {end})")
