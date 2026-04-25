@@ -44,40 +44,26 @@ LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
 
 
-# Sections that require a pause before fetching (large batches)
-PAUSE_BEFORE = {"sector-ew", "group-cw"}
+BATCH_SIZE = 40   # pause every N requests to respect Tiingo rate limit
 
 
-def load_tickers_by_section() -> tuple[list[list], list[str]]:
-    """Return (batches, all_tickers).
-
-    batches = [[section_id, [ticker, ...]], ...]  — one entry per section
-    Benchmark (SPY) is prepended to the first batch if not already present.
-    """
+def load_tickers() -> list[str]:
+    """Return deduplicated ticker list from config.json, benchmark first."""
     with open(CONFIG_PATH) as f:
         cfg = json.load(f)
-
-    seen, batches, all_tickers = set(), [], []
-
+    seen, tickers = set(), []
     for section in cfg["sections"]:
-        batch = []
         for row in section["rows"]:
             t = row["ticker"]
             if t not in seen:
                 seen.add(t)
-                batch.append(t)
-                all_tickers.append(t)
-        if batch:
-            batches.append([section["id"], batch])
-
+                tickers.append(t)
     if BENCHMARK not in seen:
-        batches[0][1].insert(0, BENCHMARK)
-        all_tickers.insert(0, BENCHMARK)
-
-    return batches, all_tickers
+        tickers.insert(0, BENCHMARK)
+    return tickers
 
 
-BATCHES, TICKERS = load_tickers_by_section()
+TICKERS = load_tickers()
 
 
 # ── Trading calendar ──────────────────────────────────────────────────────────
@@ -123,13 +109,16 @@ def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
     return df[["adjOpen", "adjHigh", "adjLow", "adjClose"]]
 
 
-def fetch_batch(tickers: list[str], start: date, end: date,
-                label: str) -> dict[str, pd.DataFrame]:
-    """Fetch a list of tickers with per-request throttling."""
+def fetch_all(tickers: list[str], start: date, end: date) -> dict[str, pd.DataFrame]:
+    """Fetch all tickers, pausing every BATCH_SIZE requests."""
     data = {}
-    log.info("Fetching %s batch (%d tickers) …", label, len(tickers))
-    for ticker in tickers:
-        log.info("  %s", ticker)
+    log.info("Fetching %d tickers (batch size %d, pause %ds) …",
+             len(tickers), BATCH_SIZE, BATCH_PAUSE_SEC)
+    for i, ticker in enumerate(tickers):
+        if i > 0 and i % BATCH_SIZE == 0:
+            log.info("  [%d/%d] Pausing %ds …", i, len(tickers), BATCH_PAUSE_SEC)
+            time.sleep(BATCH_PAUSE_SEC)
+        log.info("  [%d/%d] %s", i + 1, len(tickers), ticker)
         data[ticker] = fetch_tiingo(ticker, start, end)
         time.sleep(INTER_REQUEST_SEC)
     return data
@@ -277,13 +266,7 @@ def main() -> None:
 
     start = last_day - timedelta(days=FETCH_DAYS)
 
-    # Fetch section by section; pause before heavy sections
-    data = {}
-    for section_id, tickers in BATCHES:
-        if section_id in PAUSE_BEFORE:
-            log.info("Pausing %ds before [%s] batch …", BATCH_PAUSE_SEC, section_id)
-            time.sleep(BATCH_PAUSE_SEC)
-        data.update(fetch_batch(tickers, start, last_day, section_id))
+    data = fetch_all(TICKERS, start, last_day)
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
