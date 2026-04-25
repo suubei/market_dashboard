@@ -81,6 +81,7 @@ def get_last_trading_day() -> date:
 class RateLimitError(Exception):
     """Raised when Tiingo returns 429; signals the caller to wait and retry."""
 
+
 def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
     """Return a DataFrame with columns [adjOpen, adjHigh, adjLow, adjClose].
 
@@ -91,6 +92,7 @@ def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
     if not TIINGO_TOKEN:
         raise EnvironmentError("TIINGO_TOKEN is not set")
 
+    raw = []
     for attempt in range(3):
         try:
             resp = requests.get(
