@@ -44,39 +44,40 @@ LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
 
 
-def load_tickers_by_section() -> tuple[list[str], list[str]]:
-    """Return (main_tickers, group_cw_tickers), each deduplicated.
+# Sections that require a pause before fetching (large batches)
+PAUSE_BEFORE = {"sector-ew", "group-cw"}
 
-    group-cw is fetched in a separate batch after a pause.
-    Benchmark (SPY) is prepended to main_tickers if not already present.
+
+def load_tickers_by_section() -> tuple[list[list], list[str]]:
+    """Return (batches, all_tickers).
+
+    batches = [[section_id, [ticker, ...]], ...]  — one entry per section
+    Benchmark (SPY) is prepended to the first batch if not already present.
     """
     with open(CONFIG_PATH) as f:
         cfg = json.load(f)
 
-    main_seen, group_seen = set(), set()
-    main_tickers, group_tickers = [], []
+    seen, batches, all_tickers = set(), [], []
 
     for section in cfg["sections"]:
-        is_group = section["id"] == "group-cw"
+        batch = []
         for row in section["rows"]:
             t = row["ticker"]
-            if is_group:
-                if t not in group_seen and t not in main_seen:
-                    group_seen.add(t)
-                    group_tickers.append(t)
-            else:
-                if t not in main_seen:
-                    main_seen.add(t)
-                    main_tickers.append(t)
+            if t not in seen:
+                seen.add(t)
+                batch.append(t)
+                all_tickers.append(t)
+        if batch:
+            batches.append([section["id"], batch])
 
-    if BENCHMARK not in main_seen:
-        main_tickers.insert(0, BENCHMARK)
+    if BENCHMARK not in seen:
+        batches[0][1].insert(0, BENCHMARK)
+        all_tickers.insert(0, BENCHMARK)
 
-    return main_tickers, group_tickers
+    return batches, all_tickers
 
 
-MAIN_TICKERS, GROUP_TICKERS = load_tickers_by_section()
-TICKERS = MAIN_TICKERS + GROUP_TICKERS
+BATCHES, TICKERS = load_tickers_by_section()
 
 
 # ── Trading calendar ──────────────────────────────────────────────────────────
@@ -276,13 +277,13 @@ def main() -> None:
 
     start = last_day - timedelta(days=FETCH_DAYS)
 
-    # Fetch main sections first, then pause, then fetch group-cw
-    data = fetch_batch(MAIN_TICKERS, start, last_day, "main")
-
-    if GROUP_TICKERS:
-        log.info("Pausing %ds before group-cw batch to respect rate limit …", BATCH_PAUSE_SEC)
-        time.sleep(BATCH_PAUSE_SEC)
-        data.update(fetch_batch(GROUP_TICKERS, start, last_day, "group-cw"))
+    # Fetch section by section; pause before heavy sections
+    data = {}
+    for section_id, tickers in BATCHES:
+        if section_id in PAUSE_BEFORE:
+            log.info("Pausing %ds before [%s] batch …", BATCH_PAUSE_SEC, section_id)
+            time.sleep(BATCH_PAUSE_SEC)
+        data.update(fetch_batch(tickers, start, last_day, section_id))
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
