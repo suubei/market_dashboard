@@ -11,6 +11,7 @@ VARS formula (mattishenner / Jeff Sun):
 import json
 import logging
 import os
+import subprocess
 import sys
 import time
 from datetime import date, timedelta, datetime
@@ -134,6 +135,26 @@ def save_cache(trade_date: date, data: dict[str, pd.DataFrame]) -> None:
         json.dump({"date": trade_date.isoformat(), "tickers": serialisable}, f)
 
 
+def git_push_cache() -> None:
+    """Commit and push the cache file so a re-run can resume from this point."""
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--quiet", CACHE_PATH],
+            capture_output=True,
+        )
+        if result.returncode == 0:
+            return   # no changes
+        subprocess.run(["git", "add", CACHE_PATH], check=True)
+        subprocess.run(
+            ["git", "commit", "-m", f"cache: interim save ({datetime.utcnow().strftime('%H:%M UTC')})"],
+            check=True,
+        )
+        subprocess.run(["git", "push"], check=True)
+        log.info("  Cache committed and pushed.")
+    except subprocess.CalledProcessError as e:
+        log.warning("  git push cache failed (non-fatal): %s", e)
+
+
 def fetch_all(tickers: list[str], start: date, end: date,
               trade_date: date) -> dict[str, pd.DataFrame]:
     """Fetch all tickers, resuming from cache and pausing every BATCH_SIZE requests."""
@@ -150,6 +171,7 @@ def fetch_all(tickers: list[str], start: date, end: date,
     req_count = 0
     for ticker in remaining:
         if req_count > 0 and req_count % BATCH_SIZE == 0:
+            git_push_cache()
             log.info("  [%d requests done] Pausing %ds …", req_count, BATCH_PAUSE_SEC)
             time.sleep(BATCH_PAUSE_SEC)
         log.info("  [%d/%d] %s", req_count + 1, len(remaining), ticker)
