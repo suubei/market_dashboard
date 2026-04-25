@@ -28,24 +28,19 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── Config ────────────────────────────────────────────────────────────────────
-TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
-BENCHMARK    = "SPY"
-ATR_PERIOD   = 14
-LOOKBACK     = 50
-FETCH_DAYS   = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
-
-# Fetch the "main" sections first, then pause, then fetch group-cw.
-# Adjust BATCH_PAUSE_SEC if 429s still occur.
-INTER_REQUEST_SEC = 1.5
-BATCH_PAUSE_SEC   = 90    # pause between main sections and group-cw batch
+TIINGO_TOKEN      = os.environ.get("TIINGO_TOKEN", "")
+BENCHMARK         = "SPY"
+ATR_PERIOD        = 14
+LOOKBACK          = 50
+FETCH_DAYS        = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
+INTER_REQUEST_SEC = 1.5   # delay between Tiingo requests
+BATCH_SIZE        = 40    # pause after every N requests to respect rate limit
+BATCH_PAUSE_SEC   = 90    # seconds to pause between batches
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
 CACHE_PATH  = os.path.join(DATA_DIR, "fetch_cache.json")
-
-
-BATCH_SIZE = 40   # pause every N requests to respect Tiingo rate limit
 
 
 def load_tickers() -> list[str]:
