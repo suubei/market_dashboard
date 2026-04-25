@@ -1,6 +1,6 @@
 """
-Fetch daily OHLCV data from Tiingo, compute VARS for all non-SPY tickers vs SPY,
-and save results to data/ for GitHub Pages to serve.
+Fetch daily OHLCV data via yfinance (Yahoo Finance), compute VARS for all
+non-SPY tickers vs SPY, and save results to data/ for GitHub Pages to serve.
 
 VARS formula (mattishenner / Jeff Sun):
   vol_adj_change_t = (Close_t - Close_{t-1}) / ATR_t
@@ -15,10 +15,8 @@ import sys
 from datetime import date, timedelta, datetime
 from zoneinfo import ZoneInfo
 
-import time
-
 import pandas as pd
-import requests
+import yfinance as yf
 import exchange_calendars as xcals
 
 logging.basicConfig(
@@ -29,11 +27,10 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── Config ────────────────────────────────────────────────────────────────────
-TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
-BENCHMARK    = "SPY"
-ATR_PERIOD   = 14
-LOOKBACK     = 50
-FETCH_DAYS   = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
+BENCHMARK  = "SPY"
+ATR_PERIOD = 14
+LOOKBACK   = 50
+FETCH_DAYS = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
@@ -77,42 +74,52 @@ def get_last_trading_day() -> date:
     raise RuntimeError("Could not find last trading day within 10 days")
 
 
-# ── Tiingo API ────────────────────────────────────────────────────────────────
-def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
-    """Return a DataFrame with columns [adjOpen, adjHigh, adjLow, adjClose]."""
-    if not TIINGO_TOKEN:
-        raise EnvironmentError("TIINGO_TOKEN is not set")
+# ── Yahoo Finance download ─────────────────────────────────────────────────────
+def fetch_all(tickers: list[str], start: date, end: date) -> dict[str, pd.DataFrame]:
+    """Batch-download all tickers in a single yfinance call.
 
-    for attempt in range(5):
-        resp = requests.get(
-            f"https://api.tiingo.com/tiingo/daily/{ticker}/prices",
-            params={"startDate": start.isoformat(), "endDate": end.isoformat(),
-                    "token": TIINGO_TOKEN, "resampleFreq": "daily"},
-            timeout=30,
-        )
-        if resp.status_code == 429:
-            wait = 15 * (attempt + 1)
-            log.warning("  429 rate limit for %s, retrying in %ds …", ticker, wait)
-            time.sleep(wait)
-        else:
-            resp.raise_for_status()
-            break
+    yfinance end date is exclusive, so we pass end + 1 day.
+    Returns {ticker: DataFrame(adjOpen, adjHigh, adjLow, adjClose)}.
+    """
+    end_excl = end + timedelta(days=1)
+    log.info("Downloading %d tickers from %s to %s …", len(tickers), start, end)
+
+    raw = yf.download(
+        tickers,
+        start=start.isoformat(),
+        end=end_excl.isoformat(),
+        auto_adjust=True,
+        progress=False,
+        threads=True,
+    )
+
+    # Normalise tz-aware index to tz-naive date index
+    raw.index = raw.index.tz_localize(None) if raw.index.tz else raw.index
+    raw.index = raw.index.normalize()
+
+    result = {}
+    if len(tickers) == 1:
+        ticker = tickers[0]
+        df = raw[["Open", "High", "Low", "Close"]].copy()
+        df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
+        result[ticker] = df.dropna()
     else:
-        raise RuntimeError(f"429 rate limit not resolved for {ticker} after 5 retries")
-    raw = resp.json()
-    if not raw:
-        raise ValueError(f"Tiingo returned no data for {ticker} ({start} – {end})")
+        for ticker in tickers:
+            try:
+                df = raw.xs(ticker, level=1, axis=1)[["Open", "High", "Low", "Close"]].copy()
+                df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
+                df = df.dropna()
+                if df.empty:
+                    log.warning("  No data for %s", ticker)
+                else:
+                    result[ticker] = df
+            except KeyError:
+                log.warning("  Ticker %s not found in downloaded data", ticker)
 
-    df = pd.DataFrame(raw)
-    df["date"] = pd.to_datetime(df["date"]).dt.normalize().dt.tz_localize(None)
-    df = df.set_index("date").sort_index()
-
-    needed = {"adjOpen", "adjHigh", "adjLow", "adjClose"}
-    missing = needed - set(df.columns)
+    missing = [t for t in tickers if t not in result]
     if missing:
-        raise ValueError(f"Tiingo response for {ticker} missing columns: {missing}")
-
-    return df[["adjOpen", "adjHigh", "adjLow", "adjClose"]]
+        log.warning("Missing data for: %s", missing)
+    return result
 
 
 # ── VARS calculation ──────────────────────────────────────────────────────────
@@ -122,61 +129,6 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
     prev = close.shift(1)
     tr = pd.concat([high - low, (high - prev).abs(), (low - prev).abs()], axis=1).max(axis=1)
     return tr.ewm(com=period - 1, adjust=False).mean()
-
-
-def compute_atr_metrics(data: dict) -> dict:
-    """
-    For each ticker compute ATR%-normalised distance from 52W extremes:
-      atr_low  = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)  — higher = stronger
-      atr_high = ((Close - High_52w) / High_52w) / (ATR / Close)  — positive = new 52W high
-    """
-    metrics = {}
-    for ticker in TICKERS:
-        df    = data[ticker]
-        close = df["adjClose"]
-        atr   = wilder_atr(df, ATR_PERIOD)
-
-        current  = float(close.iloc[-1])
-        atr_val  = float(atr.iloc[-1])
-        if atr_val == 0 or current == 0:
-            continue
-
-        window   = close.iloc[-252:]          # up to 252 trading days ≈ 52 weeks
-        low_52w  = float(window.min())
-        high_52w = float(window.max())
-        atr_pct  = atr_val / current          # ATR as fraction of price
-
-        metrics[ticker] = {
-            "atr_low":  round((current - low_52w)  / low_52w  / atr_pct, 2),
-            "atr_high": round((current - high_52w) / high_52w / atr_pct, 2),
-        }
-    return metrics
-
-
-def compute_daily_changes(data: dict) -> dict:
-    """Return {ticker: daily_pct_change} — Close vs previous Close."""
-    changes = {}
-    for ticker in TICKERS:
-        close = data[ticker]["adjClose"].dropna()
-        if len(close) >= 2:
-            changes[ticker] = round(
-                (close.iloc[-1] - close.iloc[-2]) / close.iloc[-2] * 100, 2
-            )
-    return changes
-
-
-def compute_intraday_changes(data: dict) -> dict:
-    """Return {ticker: intraday_pct_change} — latest Close vs latest Open."""
-    changes = {}
-    for ticker in TICKERS:
-        df    = data[ticker].dropna(subset=["adjOpen", "adjClose"])
-        if df.empty:
-            continue
-        open_ = float(df["adjOpen"].iloc[-1])
-        close = float(df["adjClose"].iloc[-1])
-        if open_ != 0:
-            changes[ticker] = round((close - open_) / open_ * 100, 2)
-    return changes
 
 
 def compute_vars(data: dict) -> tuple:
@@ -191,7 +143,7 @@ def compute_vars(data: dict) -> tuple:
     results, series = {}, {"dates": []}
 
     for ticker in TICKERS:
-        if ticker == BENCHMARK:
+        if ticker == BENCHMARK or ticker not in data:
             continue
         df = data[ticker]
         cum = (df["adjClose"].diff() / wilder_atr(df, ATR_PERIOD)).rolling(LOOKBACK).sum()
@@ -209,6 +161,67 @@ def compute_vars(data: dict) -> tuple:
         results[ticker] = series[ticker][-1]
 
     return results, series
+
+
+def compute_daily_changes(data: dict) -> dict:
+    """Return {ticker: daily_pct_change} — Close vs previous Close."""
+    changes = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        close = data[ticker]["adjClose"].dropna()
+        if len(close) >= 2:
+            changes[ticker] = round(
+                (close.iloc[-1] - close.iloc[-2]) / close.iloc[-2] * 100, 2
+            )
+    return changes
+
+
+def compute_intraday_changes(data: dict) -> dict:
+    """Return {ticker: intraday_pct_change} — latest Close vs latest Open."""
+    changes = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        df = data[ticker].dropna(subset=["adjOpen", "adjClose"])
+        if df.empty:
+            continue
+        open_ = float(df["adjOpen"].iloc[-1])
+        close = float(df["adjClose"].iloc[-1])
+        if open_ != 0:
+            changes[ticker] = round((close - open_) / open_ * 100, 2)
+    return changes
+
+
+def compute_atr_metrics(data: dict) -> dict:
+    """
+    For each ticker compute ATR%-normalised distance from 52W extremes:
+      atr_low  = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)  — higher = stronger
+      atr_high = ((Close - High_52w) / High_52w) / (ATR / Close)  — positive = new 52W high
+    """
+    metrics = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        df    = data[ticker]
+        close = df["adjClose"]
+        atr   = wilder_atr(df, ATR_PERIOD)
+
+        current = float(close.iloc[-1])
+        atr_val = float(atr.iloc[-1])
+        if atr_val == 0 or current == 0:
+            continue
+
+        window   = close.iloc[-252:]
+        low_52w  = float(window.min())
+        high_52w = float(window.max())
+        atr_pct  = atr_val / current
+
+        metrics[ticker] = {
+            "atr_low":  round((current - low_52w)  / low_52w  / atr_pct, 2),
+            "atr_high": round((current - high_52w) / high_52w / atr_pct, 2),
+        }
+    return metrics
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
@@ -246,13 +259,7 @@ def main() -> None:
                 sys.exit(0)
 
     start = last_day - timedelta(days=FETCH_DAYS)
-    log.info("Fetching %d tickers from %s to %s", len(TICKERS), start, last_day)
-
-    data = {}
-    for ticker in TICKERS:
-        log.info("  Fetching %s …", ticker)
-        data[ticker] = fetch_tiingo(ticker, start, last_day)
-        time.sleep(1.5)   # avoid Tiingo rate limit (~50 req/min)
+    data  = fetch_all(TICKERS, start, last_day)
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
