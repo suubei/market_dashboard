@@ -146,7 +146,9 @@
         { "ticker": "SOCL", "label": "Social Media"            },
         { "ticker": "ESPO", "label": "Video Gaming"            },
         { "ticker": "BLOK", "label": "Blockchain (Amplify)"    },
-        { "ticker": "WGMI", "label": "Bitcoin Miners"          }
+        { "ticker": "WGMI", "label": "Bitcoin Miners"          },
+        { "ticker": "EWY",  "label": "South Korea"             },
+        { "ticker": "IYZ",  "label": "Telecom"                 }
       ]
     }
   ]
