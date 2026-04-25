@@ -42,6 +42,7 @@ BATCH_PAUSE_SEC   = 90    # pause between main sections and group-cw batch
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
+CACHE_PATH  = os.path.join(DATA_DIR, "fetch_cache.json")
 
 
 BATCH_SIZE = 40   # pause every N requests to respect Tiingo rate limit
@@ -109,18 +110,59 @@ def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
     return df[["adjOpen", "adjHigh", "adjLow", "adjClose"]]
 
 
-def fetch_all(tickers: list[str], start: date, end: date) -> dict[str, pd.DataFrame]:
-    """Fetch all tickers, pausing every BATCH_SIZE requests."""
-    data = {}
-    log.info("Fetching %d tickers (batch size %d, pause %ds) …",
-             len(tickers), BATCH_SIZE, BATCH_PAUSE_SEC)
-    for i, ticker in enumerate(tickers):
-        if i > 0 and i % BATCH_SIZE == 0:
-            log.info("  [%d/%d] Pausing %ds …", i, len(tickers), BATCH_PAUSE_SEC)
+def load_cache(trade_date: date) -> dict[str, pd.DataFrame]:
+    """Load per-ticker DataFrames from today's cache file, if it exists."""
+    if not os.path.exists(CACHE_PATH):
+        return {}
+    with open(CACHE_PATH) as f:
+        raw = json.load(f)
+    if raw.get("date") != trade_date.isoformat():
+        return {}   # stale cache from a previous day
+    result = {}
+    for ticker, records in raw.get("tickers", {}).items():
+        df = pd.DataFrame(records)
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.set_index("date").sort_index()
+        result[ticker] = df
+    log.info("Cache hit: %d tickers already fetched for %s", len(result), trade_date)
+    return result
+
+
+def save_cache(trade_date: date, data: dict[str, pd.DataFrame]) -> None:
+    """Persist fetched DataFrames to cache so re-runs skip already-done tickers."""
+    serialisable = {}
+    for ticker, df in data.items():
+        records = df.reset_index()
+        records["date"] = records["date"].dt.strftime("%Y-%m-%d")
+        serialisable[ticker] = records.to_dict(orient="records")
+    with open(CACHE_PATH, "w") as f:
+        json.dump({"date": trade_date.isoformat(), "tickers": serialisable}, f)
+
+
+def fetch_all(tickers: list[str], start: date, end: date,
+              trade_date: date) -> dict[str, pd.DataFrame]:
+    """Fetch all tickers, resuming from cache and pausing every BATCH_SIZE requests."""
+    data = load_cache(trade_date)
+    remaining = [t for t in tickers if t not in data]
+
+    if not remaining:
+        log.info("All tickers already cached – skipping fetch.")
+        return data
+
+    log.info("Fetching %d/%d tickers (batch size %d, pause %ds) …",
+             len(remaining), len(tickers), BATCH_SIZE, BATCH_PAUSE_SEC)
+
+    req_count = 0
+    for ticker in remaining:
+        if req_count > 0 and req_count % BATCH_SIZE == 0:
+            log.info("  [%d requests done] Pausing %ds …", req_count, BATCH_PAUSE_SEC)
             time.sleep(BATCH_PAUSE_SEC)
-        log.info("  [%d/%d] %s", i + 1, len(tickers), ticker)
+        log.info("  [%d/%d] %s", req_count + 1, len(remaining), ticker)
         data[ticker] = fetch_tiingo(ticker, start, end)
+        save_cache(trade_date, data)   # incremental save after each ticker
+        req_count += 1
         time.sleep(INTER_REQUEST_SEC)
+
     return data
 
 
@@ -266,7 +308,7 @@ def main() -> None:
 
     start = last_day - timedelta(days=FETCH_DAYS)
 
-    data = fetch_all(TICKERS, start, last_day)
+    data = fetch_all(TICKERS, start, last_day, last_day)
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
