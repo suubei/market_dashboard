@@ -174,8 +174,11 @@ def fetch_all(tickers: list[str], start: date, end: date,
                 log.info("  [%d requests done] Pausing %ds …", req_count, BATCH_PAUSE_SEC)
                 time.sleep(BATCH_PAUSE_SEC)
             log.info("  [%d/%d] %s", req_count + 1, len(remaining), ticker)
-            data[ticker] = fetch_tiingo(ticker, start, end)
-            save_cache(trade_date, data)   # incremental save after each ticker
+            try:
+                data[ticker] = fetch_tiingo(ticker, start, end)
+                save_cache(trade_date, data)
+            except Exception as e:
+                log.warning("  Skipping %s – %s", ticker, e)
             req_count += 1
             time.sleep(INTER_REQUEST_SEC)
     except Exception:
