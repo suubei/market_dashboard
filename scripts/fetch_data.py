@@ -154,6 +154,10 @@ def compute_vars(data: dict) -> tuple:
 
         recent = (t_aligned - spy_aligned).dropna().iloc[-LOOKBACK:]
 
+        if recent.empty:
+            log.warning("  No valid VARS data for %s – skipping", ticker)
+            continue
+
         if not series["dates"]:
             series["dates"] = [d.strftime("%Y-%m-%d") for d in recent.index]
 
