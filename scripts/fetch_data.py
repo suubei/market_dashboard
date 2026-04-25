@@ -14,7 +14,7 @@ import os
 import subprocess
 import sys
 import time
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, UTC
 from zoneinfo import ZoneInfo
 
 import pandas as pd
@@ -167,7 +167,7 @@ def git_push_cache() -> None:
             return   # no changes
         subprocess.run(["git", "add", CACHE_PATH], check=True)
         subprocess.run(
-            ["git", "commit", "-m", f"cache: interim save ({datetime.utcnow().strftime('%H:%M UTC')})"],
+            ["git", "commit", "-m", f"cache: interim save ({datetime.now(UTC).strftime('%H:%M UTC')})"],
             check=True,
         )
         subprocess.run(["git", "pull", "--rebase"], check=True)
@@ -335,7 +335,7 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict,
 
     payload = {
         "date":             date_str,
-        "updated_at":       datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "updated_at":       datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "params":           {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
         "vars":             vars_result,
         "vars_series":      vars_series,
