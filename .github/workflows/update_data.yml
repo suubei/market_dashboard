@@ -40,9 +40,9 @@ jobs:
         run: python scripts/fetch_data.py
 
       - name: Commit and push updated data
+        if: always()   # run even if the fetch step failed, to save cache progress
         run: |
           git add data/
-          # Only commit if there are staged changes (skips non-trading days)
           git diff --staged --quiet || \
             git commit -m "data: VARS update $(date -u +'%Y-%m-%d')"
-          git push
+          git push || true   # non-fatal if nothing to push
