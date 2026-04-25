@@ -29,16 +29,32 @@ log = logging.getLogger(__name__)
 # ── Config ────────────────────────────────────────────────────────────────────
 TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
 BENCHMARK    = "SPY"
-TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM", "DIA",
-                "IJS", "IJT", "IJJ", "IJK", "IVE", "IVW",
-                "XLK", "XLF", "XLV", "XLY", "XLI", "XLC", "XLP", "XLE", "XLU", "XLRE", "XLB",
-                "RSPT", "RSPF", "RSPH", "RSPD", "RSPN", "RSPC", "RSPS", "RSPG", "RSPU", "RSPR", "RSPM"]
 ATR_PERIOD   = 14
 LOOKBACK     = 50
 FETCH_DAYS   = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
+CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
+
+
+def load_tickers() -> list[str]:
+    """Return deduplicated ticker list from config.json, benchmark first."""
+    with open(CONFIG_PATH) as f:
+        cfg = json.load(f)
+    seen, tickers = set(), []
+    for section in cfg["sections"]:
+        for row in section["rows"]:
+            t = row["ticker"]
+            if t not in seen:
+                seen.add(t)
+                tickers.append(t)
+    if BENCHMARK not in seen:
+        tickers.insert(0, BENCHMARK)
+    return tickers
+
+
+TICKERS = load_tickers()
 
 
 # ── Trading calendar ──────────────────────────────────────────────────────────

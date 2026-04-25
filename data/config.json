@@ -1,0 +1,62 @@
+{
+  "sections": [
+    {
+      "id": "market",
+      "label": "Market",
+      "rows": [
+        { "ticker": "SPY",  "label": "SPY 500"  },
+        { "ticker": "RSP",  "label": "RSP 500"  },
+        { "ticker": "QQQ",  "label": "QQQ 100"  },
+        { "ticker": "QQQE", "label": "QQQE 100" },
+        { "ticker": "IWM",  "label": "IWM 2000" },
+        { "ticker": "DIA",  "label": "DIA 30"   }
+      ]
+    },
+    {
+      "id": "sub-market",
+      "label": "Sub-Market",
+      "rows": [
+        { "ticker": "IJS", "label": "S&P Small-Cap 600 Value"  },
+        { "ticker": "IJT", "label": "S&P Small-Cap 600 Growth" },
+        { "ticker": "IJJ", "label": "S&P Mid-Cap 400 Value"    },
+        { "ticker": "IJK", "label": "S&P Mid-Cap 400 Growth"   },
+        { "ticker": "IVE", "label": "S&P Large-Cap 500 Value"  },
+        { "ticker": "IVW", "label": "S&P Large-Cap 500 Growth" }
+      ]
+    },
+    {
+      "id": "sector-cw",
+      "label": "Sector (CW)",
+      "rows": [
+        { "ticker": "XLK",  "label": "Technology *"             },
+        { "ticker": "XLF",  "label": "Financials"               },
+        { "ticker": "XLV",  "label": "Health Care *"            },
+        { "ticker": "XLY",  "label": "Consumer Discretionary *" },
+        { "ticker": "XLI",  "label": "Industrials *"            },
+        { "ticker": "XLC",  "label": "Communication Services"   },
+        { "ticker": "XLP",  "label": "Consumer Staples"         },
+        { "ticker": "XLE",  "label": "Energy *"                 },
+        { "ticker": "XLU",  "label": "Utilities"                },
+        { "ticker": "XLRE", "label": "Real Estate"              },
+        { "ticker": "XLB",  "label": "Materials"                }
+      ]
+    },
+    {
+      "id": "sector-ew",
+      "label": "Sector (EW)",
+      "rows": [
+        { "ticker": "RSPT", "label": "Technology *"             },
+        { "ticker": "RSPF", "label": "Financials"               },
+        { "ticker": "RSPH", "label": "Health Care *"            },
+        { "ticker": "RSPD", "label": "Consumer Discretionary *" },
+        { "ticker": "RSPN", "label": "Industrials *"            },
+        { "ticker": "RSPC", "label": "Communication Services"   },
+        { "ticker": "RSPS", "label": "Consumer Staples"         },
+        { "ticker": "RSPG", "label": "Energy *"                 },
+        { "ticker": "RSPU", "label": "Utilities"                },
+        { "ticker": "RSPR", "label": "Real Estate"              },
+        { "ticker": "RSPM", "label": "Materials"                }
+      ]
+    }
+  ]
+}

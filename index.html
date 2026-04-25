@@ -146,83 +146,7 @@
 
 <div id="status"></div>
 
-<div id="dashboard">
-  <table class="ticker-table">
-    <colgroup>
-      <col class="col-market"><col class="col-index">
-      <col class="col-rs"><col class="col-sts">
-      <col class="col-intraday"><col class="col-chg">
-      <col class="col-atr-low"><col class="col-atr-high">
-    </colgroup>
-    <thead><tr>
-      <th class="col-market">Market</th><th class="col-index">Symbol</th>
-      <th class="col-rs">1-Month RS</th>
-      <th class="col-sts sortable" data-sort="sts" data-tbody="ticker-body">RS_STS%<span class="sort-arrow"></span></th>
-      <th class="col-intraday sortable" data-sort="intraday" data-tbody="ticker-body">Intraday %<span class="sort-arrow"></span></th>
-      <th class="col-chg sortable" data-sort="chg" data-tbody="ticker-body">Daily %<span class="sort-arrow"></span></th>
-      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
-      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
-    </tr></thead>
-    <tbody id="ticker-body"></tbody>
-  </table>
-
-  <table class="ticker-table">
-    <colgroup>
-      <col class="col-market"><col class="col-index">
-      <col class="col-rs"><col class="col-sts">
-      <col class="col-intraday"><col class="col-chg">
-      <col class="col-atr-low"><col class="col-atr-high">
-    </colgroup>
-    <thead><tr>
-      <th class="col-market">Sub-Market</th><th class="col-index">Symbol</th>
-      <th class="col-rs">1-Month RS</th>
-      <th class="col-sts sortable" data-sort="sts" data-tbody="sub-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
-      <th class="col-intraday sortable" data-sort="intraday" data-tbody="sub-ticker-body">Intraday %<span class="sort-arrow"></span></th>
-      <th class="col-chg sortable" data-sort="chg" data-tbody="sub-ticker-body">Daily %<span class="sort-arrow"></span></th>
-      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sub-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
-      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sub-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
-    </tr></thead>
-    <tbody id="sub-ticker-body"></tbody>
-  </table>
-
-  <table class="ticker-table">
-    <colgroup>
-      <col class="col-market"><col class="col-index">
-      <col class="col-rs"><col class="col-sts">
-      <col class="col-intraday"><col class="col-chg">
-      <col class="col-atr-low"><col class="col-atr-high">
-    </colgroup>
-    <thead><tr>
-      <th class="col-market">Sector (CW)</th><th class="col-index">Symbol</th>
-      <th class="col-rs">1-Month RS</th>
-      <th class="col-sts sortable" data-sort="sts" data-tbody="sector-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
-      <th class="col-intraday sortable" data-sort="intraday" data-tbody="sector-ticker-body">Intraday %<span class="sort-arrow"></span></th>
-      <th class="col-chg sortable" data-sort="chg" data-tbody="sector-ticker-body">Daily %<span class="sort-arrow"></span></th>
-      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sector-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
-      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sector-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
-    </tr></thead>
-    <tbody id="sector-ticker-body"></tbody>
-  </table>
-
-  <table class="ticker-table">
-    <colgroup>
-      <col class="col-market"><col class="col-index">
-      <col class="col-rs"><col class="col-sts">
-      <col class="col-intraday"><col class="col-chg">
-      <col class="col-atr-low"><col class="col-atr-high">
-    </colgroup>
-    <thead><tr>
-      <th class="col-market">Sector (EW)</th><th class="col-index">Symbol</th>
-      <th class="col-rs">1-Month RS</th>
-      <th class="col-sts sortable" data-sort="sts" data-tbody="sector-ew-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
-      <th class="col-intraday sortable" data-sort="intraday" data-tbody="sector-ew-ticker-body">Intraday %<span class="sort-arrow"></span></th>
-      <th class="col-chg sortable" data-sort="chg" data-tbody="sector-ew-ticker-body">Daily %<span class="sort-arrow"></span></th>
-      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sector-ew-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
-      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sector-ew-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
-    </tr></thead>
-    <tbody id="sector-ew-ticker-body"></tbody>
-  </table>
-</div>
+<div id="dashboard"></div>
 
 <footer>
   <span>数据：<a href="https://www.tiingo.com" target="_blank">Tiingo</a></span>
@@ -254,52 +178,32 @@ function percentRank(values, val) {
   return valid.filter(v => v < val).length / (valid.length - 1);
 }
 
-// ── Display config ────────────────────────────────────────────────────────────
-const DISPLAY_ORDER = [
-  { ticker: 'SPY',  market: 'SPY 500'  },
-  { ticker: 'RSP',  market: 'RSP 500'  },
-  { ticker: 'QQQ',  market: 'QQQ 100'  },
-  { ticker: 'QQQE', market: 'QQQE 100' },
-  { ticker: 'IWM',  market: 'IWM 2000' },
-  { ticker: 'DIA',  market: 'DIA 30'   },
-];
-
-const SUB_DISPLAY_ORDER = [
-  { ticker: 'IJS', market: 'S&P Small-Cap 600 Value'  },
-  { ticker: 'IJT', market: 'S&P Small-Cap 600 Growth' },
-  { ticker: 'IJJ', market: 'S&P Mid-Cap 400 Value'    },
-  { ticker: 'IJK', market: 'S&P Mid-Cap 400 Growth'   },
-  { ticker: 'IVE', market: 'S&P Large-Cap 500 Value'  },
-  { ticker: 'IVW', market: 'S&P Large-Cap 500 Growth' },
-];
-
-const SECTOR_DISPLAY_ORDER = [
-  { ticker: 'XLK',  market: 'Technology *'             },
-  { ticker: 'XLF',  market: 'Financials'               },
-  { ticker: 'XLV',  market: 'Health Care *'            },
-  { ticker: 'XLY',  market: 'Consumer Discretionary *' },
-  { ticker: 'XLI',  market: 'Industrials *'            },
-  { ticker: 'XLC',  market: 'Communication Services'   },
-  { ticker: 'XLP',  market: 'Consumer Staples'         },
-  { ticker: 'XLE',  market: 'Energy *'                 },
-  { ticker: 'XLU',  market: 'Utilities'                },
-  { ticker: 'XLRE', market: 'Real Estate'              },
-  { ticker: 'XLB',  market: 'Materials'                },
-];
-
-const SECTOR_EW_DISPLAY_ORDER = [
-  { ticker: 'RSPT', market: 'Technology *'             },
-  { ticker: 'RSPF', market: 'Financials'               },
-  { ticker: 'RSPH', market: 'Health Care *'            },
-  { ticker: 'RSPD', market: 'Consumer Discretionary *' },
-  { ticker: 'RSPN', market: 'Industrials *'            },
-  { ticker: 'RSPC', market: 'Communication Services'   },
-  { ticker: 'RSPS', market: 'Consumer Staples'         },
-  { ticker: 'RSPG', market: 'Energy *'                 },
-  { ticker: 'RSPU', market: 'Utilities'                },
-  { ticker: 'RSPR', market: 'Real Estate'              },
-  { ticker: 'RSPM', market: 'Materials'                },
-];
+// ── Table builder ─────────────────────────────────────────────────────────────
+function buildTable(section) {
+  const id = `${section.id}-body`;
+  const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', atrLow: 'col-atr-low', atrHigh: 'col-atr-high' };
+  const sortTh = (col, label) =>
+    `<th class="${colClass[col]} sortable" data-sort="${col}" data-tbody="${id}">${label}<span class="sort-arrow"></span></th>`;
+  return `<table class="ticker-table">
+    <colgroup>
+      <col class="col-market"><col class="col-index">
+      <col class="col-rs"><col class="col-sts">
+      <col class="col-intraday"><col class="col-chg">
+      <col class="col-atr-low"><col class="col-atr-high">
+    </colgroup>
+    <thead><tr>
+      <th class="col-market">${section.label}</th>
+      <th class="col-index">Symbol</th>
+      <th class="col-rs">1-Month RS</th>
+      ${sortTh('sts', 'RS_STS%')}
+      ${sortTh('intraday', 'Intraday %')}
+      ${sortTh('chg', 'Daily %')}
+      ${sortTh('atrLow', '52WL Dist (ATR%)')}
+      ${sortTh('atrHigh', '52WH Dist (ATR%)')}
+    </tr></thead>
+    <tbody id="${id}"></tbody>
+  </table>`;
+}
 
 // ── SVG: VARS histogram ───────────────────────────────────────────────────────
 const VB_W   = 200, VB_H = 48;
@@ -450,11 +354,18 @@ function renderSection(displayOrder, tbodyId, series, changes, intraday, atrMetr
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 (async () => {
   try {
-    const latest = await fetch('./data/latest.json')
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
+    const [config, latest] = await Promise.all([
+      fetch('./data/config.json').then(r => { if (!r.ok) throw new Error(`config HTTP ${r.status}`); return r.json(); }),
+      fetch('./data/latest.json').then(r => { if (!r.ok) throw new Error(`data HTTP ${r.status}`);   return r.json(); }),
+    ]);
+
+    // Build tables from config
+    document.getElementById('dashboard').innerHTML =
+      config.sections.map(buildTable).join('');
 
     if (!latest.date) {
       showStatus('数据尚未生成，等待首次 GitHub Actions 运行（北京时间每日 06:00）。');
+      document.getElementById('dashboard').style.display = 'block';
       return;
     }
 
@@ -462,19 +373,18 @@ function renderSection(displayOrder, tbodyId, series, changes, intraday, atrMetr
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('dashboard').style.display = 'block';
 
-    _series     = latest.vars_series     ?? {};
-    _changes    = latest.daily_change   ?? {};
-    _intraday   = latest.intraday_change ?? {};
-    _atrMetrics = latest.atr_metrics    ?? {};
+    _series     = latest.vars_series      ?? {};
+    _changes    = latest.daily_change     ?? {};
+    _intraday   = latest.intraday_change  ?? {};
+    _atrMetrics = latest.atr_metrics      ?? {};
 
-    const TBODY_TO_ORDER = {
-      'ticker-body':           DISPLAY_ORDER,
-      'sub-ticker-body':       SUB_DISPLAY_ORDER,
-      'sector-ticker-body':    SECTOR_DISPLAY_ORDER,
-      'sector-ew-ticker-body': SECTOR_EW_DISPLAY_ORDER,
-    };
+    const TBODY_TO_ORDER = {};
+    config.sections.forEach(s => {
+      TBODY_TO_ORDER[`${s.id}-body`] = s.rows.map(r => ({ ticker: r.ticker, market: r.label }));
+    });
 
-    Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id, _series, _changes, _intraday, _atrMetrics));
+    Object.entries(TBODY_TO_ORDER).forEach(([id, order]) =>
+      renderSection(order, id, _series, _changes, _intraday, _atrMetrics));
 
     document.querySelectorAll('th.sortable').forEach(th => {
       th.addEventListener('click', () => {
