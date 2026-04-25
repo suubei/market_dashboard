@@ -78,21 +78,43 @@ def get_last_trading_day() -> date:
 
 
 # ── Tiingo API ────────────────────────────────────────────────────────────────
+class RateLimitError(Exception):
+    """Raised when Tiingo returns 429; signals the caller to wait and retry."""
+
 def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
-    """Return a DataFrame with columns [adjOpen, adjHigh, adjLow, adjClose]."""
+    """Return a DataFrame with columns [adjOpen, adjHigh, adjLow, adjClose].
+
+    Retries up to 3 times on transient network errors.
+    Raises RateLimitError on 429 so the caller can pause and retry.
+    Raises ValueError if the ticker genuinely has no data (caller should skip).
+    """
     if not TIINGO_TOKEN:
         raise EnvironmentError("TIINGO_TOKEN is not set")
 
-    resp = requests.get(
-        f"https://api.tiingo.com/tiingo/daily/{ticker}/prices",
-        params={"startDate": start.isoformat(), "endDate": end.isoformat(),
-                "token": TIINGO_TOKEN, "resampleFreq": "daily"},
-        timeout=30,
-    )
-    resp.raise_for_status()
-    raw = resp.json()
+    for attempt in range(3):
+        try:
+            resp = requests.get(
+                f"https://api.tiingo.com/tiingo/daily/{ticker}/prices",
+                params={"startDate": start.isoformat(), "endDate": end.isoformat(),
+                        "token": TIINGO_TOKEN, "resampleFreq": "daily"},
+                timeout=30,
+            )
+        except requests.exceptions.RequestException as e:
+            if attempt < 2:
+                log.warning("  Network error for %s (attempt %d): %s – retrying", ticker, attempt + 1, e)
+                time.sleep(5 * (attempt + 1))
+                continue
+            raise
+
+        if resp.status_code == 429:
+            raise RateLimitError(f"429 rate limit hit on {ticker}")
+
+        resp.raise_for_status()
+        raw = resp.json()
+        break
+
     if not raw:
-        raise ValueError(f"Tiingo returned no data for {ticker} ({start} – {end})")
+        raise ValueError(f"No data returned for {ticker}")
 
     df = pd.DataFrame(raw)
     df["date"] = pd.to_datetime(df["date"]).dt.normalize().dt.tz_localize(None)
@@ -101,7 +123,7 @@ def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
     needed = {"adjOpen", "adjHigh", "adjLow", "adjClose"}
     missing = needed - set(df.columns)
     if missing:
-        raise ValueError(f"Tiingo response for {ticker} missing columns: {missing}")
+        raise ValueError(f"{ticker} missing columns: {missing}")
 
     return df[["adjOpen", "adjHigh", "adjLow", "adjClose"]]
 
@@ -174,11 +196,19 @@ def fetch_all(tickers: list[str], start: date, end: date,
                 log.info("  [%d requests done] Pausing %ds …", req_count, BATCH_PAUSE_SEC)
                 time.sleep(BATCH_PAUSE_SEC)
             log.info("  [%d/%d] %s", req_count + 1, len(remaining), ticker)
-            try:
-                data[ticker] = fetch_tiingo(ticker, start, end)
-                save_cache(trade_date, data)
-            except Exception as e:
-                log.warning("  Skipping %s – %s", ticker, e)
+            for rate_retry in range(5):
+                try:
+                    data[ticker] = fetch_tiingo(ticker, start, end)
+                    save_cache(trade_date, data)
+                    break
+                except RateLimitError:
+                    wait = BATCH_PAUSE_SEC * (rate_retry + 1)
+                    log.warning("  Rate limit hit – pausing %ds before retrying %s …", wait, ticker)
+                    git_push_cache()
+                    time.sleep(wait)
+                except Exception as e:
+                    log.warning("  Skipping %s – %s", ticker, e)
+                    break
             req_count += 1
             time.sleep(INTER_REQUEST_SEC)
     except Exception:
