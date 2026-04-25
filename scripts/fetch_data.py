@@ -15,6 +15,8 @@ import sys
 from datetime import date, timedelta, datetime
 from zoneinfo import ZoneInfo
 
+import time
+
 import pandas as pd
 import requests
 import exchange_calendars as xcals
@@ -241,6 +243,7 @@ def main() -> None:
     for ticker in TICKERS:
         log.info("  Fetching %s …", ticker)
         data[ticker] = fetch_tiingo(ticker, start, last_day)
+        time.sleep(0.5)   # avoid Tiingo rate limit
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
