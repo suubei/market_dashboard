@@ -174,7 +174,7 @@ def git_push_cache() -> None:
         subprocess.run(["git", "push"], check=True)
         log.info("  Cache committed and pushed.")
     except subprocess.CalledProcessError as e:
-        log.warning("  git push cache failed (non-fatal): %s", e)
+        log.warning("  git push cache failed (non-fatal, workflow will retry at end): %s", e)
 
 
 def fetch_all(tickers: list[str], start: date, end: date,

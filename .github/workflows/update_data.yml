@@ -45,4 +45,5 @@ jobs:
           git add data/
           git diff --staged --quiet || \
             git commit -m "data: VARS update $(date -u +'%Y-%m-%d')"
-          git push || true   # non-fatal if nothing to push
+          git pull --rebase
+          git push
