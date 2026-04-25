@@ -193,7 +193,7 @@
       <col class="col-atr-low"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
-      <th class="col-market">Sector</th><th class="col-index">Symbol</th>
+      <th class="col-market">Sector (CW)</th><th class="col-index">Symbol</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-sts sortable" data-sort="sts" data-tbody="sector-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
       <th class="col-intraday sortable" data-sort="intraday" data-tbody="sector-ticker-body">Intraday %<span class="sort-arrow"></span></th>
@@ -202,6 +202,25 @@
       <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sector-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
     </tr></thead>
     <tbody id="sector-ticker-body"></tbody>
+  </table>
+
+  <table class="ticker-table">
+    <colgroup>
+      <col class="col-market"><col class="col-index">
+      <col class="col-rs"><col class="col-sts">
+      <col class="col-intraday"><col class="col-chg">
+      <col class="col-atr-low"><col class="col-atr-high">
+    </colgroup>
+    <thead><tr>
+      <th class="col-market">Sector (EW)</th><th class="col-index">Symbol</th>
+      <th class="col-rs">1-Month RS</th>
+      <th class="col-sts sortable" data-sort="sts" data-tbody="sector-ew-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
+      <th class="col-intraday sortable" data-sort="intraday" data-tbody="sector-ew-ticker-body">Intraday %<span class="sort-arrow"></span></th>
+      <th class="col-chg sortable" data-sort="chg" data-tbody="sector-ew-ticker-body">Daily %<span class="sort-arrow"></span></th>
+      <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sector-ew-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
+      <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sector-ew-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
+    </tr></thead>
+    <tbody id="sector-ew-ticker-body"></tbody>
   </table>
 </div>
 
@@ -255,17 +274,31 @@ const SUB_DISPLAY_ORDER = [
 ];
 
 const SECTOR_DISPLAY_ORDER = [
-  { ticker: 'XLRE', market: 'Real Estate'             },
-  { ticker: 'XLU',  market: 'Utilities'               },
-  { ticker: 'XLV',  market: 'Health Care *'           },
-  { ticker: 'XLF',  market: 'Financials'              },
-  { ticker: 'XLP',  market: 'Consumer Staples'        },
-  { ticker: 'XLB',  market: 'Materials'               },
-  { ticker: 'XLE',  market: 'Energy *'                },
-  { ticker: 'XLI',  market: 'Industrials *'           },
-  { ticker: 'XLY',  market: 'Consumer Discretionary *'},
-  { ticker: 'XLC',  market: 'Communication'           },
-  { ticker: 'XLK',  market: 'Technology *'            },
+  { ticker: 'XLK',  market: 'Technology *'             },
+  { ticker: 'XLF',  market: 'Financials'               },
+  { ticker: 'XLV',  market: 'Health Care *'            },
+  { ticker: 'XLY',  market: 'Consumer Discretionary *' },
+  { ticker: 'XLI',  market: 'Industrials *'            },
+  { ticker: 'XLC',  market: 'Communication Services'   },
+  { ticker: 'XLP',  market: 'Consumer Staples'         },
+  { ticker: 'XLE',  market: 'Energy *'                 },
+  { ticker: 'XLU',  market: 'Utilities'                },
+  { ticker: 'XLRE', market: 'Real Estate'              },
+  { ticker: 'XLB',  market: 'Materials'                },
+];
+
+const SECTOR_EW_DISPLAY_ORDER = [
+  { ticker: 'RSPT', market: 'Technology *'             },
+  { ticker: 'RSPF', market: 'Financials'               },
+  { ticker: 'RSPH', market: 'Health Care *'            },
+  { ticker: 'RSPD', market: 'Consumer Discretionary *' },
+  { ticker: 'RSPN', market: 'Industrials *'            },
+  { ticker: 'RSPC', market: 'Communication Services'   },
+  { ticker: 'RSPS', market: 'Consumer Staples'         },
+  { ticker: 'RSPG', market: 'Energy *'                 },
+  { ticker: 'RSPU', market: 'Utilities'                },
+  { ticker: 'RSPR', market: 'Real Estate'              },
+  { ticker: 'RSPM', market: 'Materials'                },
 ];
 
 // ── SVG: VARS histogram ───────────────────────────────────────────────────────
@@ -435,9 +468,10 @@ function renderSection(displayOrder, tbodyId, series, changes, intraday, atrMetr
     _atrMetrics = latest.atr_metrics    ?? {};
 
     const TBODY_TO_ORDER = {
-      'ticker-body':        DISPLAY_ORDER,
-      'sub-ticker-body':    SUB_DISPLAY_ORDER,
-      'sector-ticker-body': SECTOR_DISPLAY_ORDER,
+      'ticker-body':           DISPLAY_ORDER,
+      'sub-ticker-body':       SUB_DISPLAY_ORDER,
+      'sector-ticker-body':    SECTOR_DISPLAY_ORDER,
+      'sector-ew-ticker-body': SECTOR_EW_DISPLAY_ORDER,
     };
 
     Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id, _series, _changes, _intraday, _atrMetrics));

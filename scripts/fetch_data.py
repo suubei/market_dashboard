@@ -31,8 +31,8 @@ TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
 BENCHMARK    = "SPY"
 TICKERS      = ["SPY", "RSP", "QQQ", "QQQE", "IWM", "DIA",
                 "IJS", "IJT", "IJJ", "IJK", "IVE", "IVW",
-                "XLRE", "XLU", "XLV", "XLF", "XLP", "XLB",
-                "XLE", "XLI", "XLY", "XLC", "XLK"]
+                "XLK", "XLF", "XLV", "XLY", "XLI", "XLC", "XLP", "XLE", "XLU", "XLRE", "XLB",
+                "RSPT", "RSPF", "RSPH", "RSPD", "RSPN", "RSPC", "RSPS", "RSPG", "RSPU", "RSPR", "RSPM"]
 ATR_PERIOD   = 14
 LOOKBACK     = 50
 FETCH_DAYS   = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
