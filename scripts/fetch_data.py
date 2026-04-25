@@ -80,12 +80,12 @@ def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
     df["date"] = pd.to_datetime(df["date"]).dt.normalize().dt.tz_localize(None)
     df = df.set_index("date").sort_index()
 
-    needed = {"adjHigh", "adjLow", "adjClose"}
+    needed = {"adjOpen", "adjHigh", "adjLow", "adjClose"}
     missing = needed - set(df.columns)
     if missing:
         raise ValueError(f"Tiingo response for {ticker} missing columns: {missing}")
 
-    return df[["adjHigh", "adjLow", "adjClose"]]
+    return df[["adjOpen", "adjHigh", "adjLow", "adjClose"]]
 
 
 # ── VARS calculation ──────────────────────────────────────────────────────────
@@ -127,7 +127,7 @@ def compute_atr_metrics(data: dict) -> dict:
 
 
 def compute_daily_changes(data: dict) -> dict:
-    """Return {ticker: daily_pct_change} for all tickers including benchmark."""
+    """Return {ticker: daily_pct_change} — Close vs previous Close."""
     changes = {}
     for ticker in TICKERS:
         close = data[ticker]["adjClose"].dropna()
@@ -135,6 +135,20 @@ def compute_daily_changes(data: dict) -> dict:
             changes[ticker] = round(
                 (close.iloc[-1] - close.iloc[-2]) / close.iloc[-2] * 100, 2
             )
+    return changes
+
+
+def compute_intraday_changes(data: dict) -> dict:
+    """Return {ticker: intraday_pct_change} — latest Close vs latest Open."""
+    changes = {}
+    for ticker in TICKERS:
+        df    = data[ticker].dropna(subset=["adjOpen", "adjClose"])
+        if df.empty:
+            continue
+        open_ = float(df["adjOpen"].iloc[-1])
+        close = float(df["adjClose"].iloc[-1])
+        if open_ != 0:
+            changes[ticker] = round((close - open_) / open_ * 100, 2)
     return changes
 
 
@@ -172,18 +186,19 @@ def compute_vars(data: dict) -> tuple:
 
 # ── Persistence ───────────────────────────────────────────────────────────────
 def save_data(trade_date: date, vars_result: dict, vars_series: dict,
-              daily_changes: dict, atr_metrics: dict) -> None:
+              daily_changes: dict, intraday_changes: dict, atr_metrics: dict) -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
 
     payload = {
-        "date":         date_str,
-        "updated_at":   datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "params":       {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
-        "vars":         vars_result,
-        "vars_series":  vars_series,
-        "daily_change": daily_changes,
-        "atr_metrics":  atr_metrics,
+        "date":             date_str,
+        "updated_at":       datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "params":           {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
+        "vars":             vars_result,
+        "vars_series":      vars_series,
+        "daily_change":     daily_changes,
+        "intraday_change":  intraday_changes,
+        "atr_metrics":      atr_metrics,
     }
 
     with open(LATEST_PATH, "w") as f:
@@ -212,10 +227,11 @@ def main() -> None:
         data[ticker] = fetch_tiingo(ticker, start, last_day)
 
     vars_result, vars_series = compute_vars(data)
-    daily_changes = compute_daily_changes(data)
-    atr_metrics   = compute_atr_metrics(data)
+    daily_changes    = compute_daily_changes(data)
+    intraday_changes = compute_intraday_changes(data)
+    atr_metrics      = compute_atr_metrics(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
-    save_data(last_day, vars_result, vars_series, daily_changes, atr_metrics)
+    save_data(last_day, vars_result, vars_series, daily_changes, intraday_changes, atr_metrics)
 
 
 if __name__ == "__main__":

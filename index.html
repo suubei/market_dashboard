@@ -60,13 +60,14 @@
 
     .ticker-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-    .col-market   { width: 190px; }
-    .col-index    { width: 80px; }
-    .col-rs       { width: 90px; }
-    .col-sts      { width: 80px; }
-    .col-chg      { width: 130px; }
-    .col-atr-low  { width: 145px; }
-    .col-atr-high { width: 145px; }
+    .col-market    { width: 175px; }
+    .col-index     { width: 70px; }
+    .col-rs        { width: 85px; }
+    .col-sts       { width: 70px; }
+    .col-intraday  { width: 110px; }
+    .col-chg       { width: 110px; }
+    .col-atr-low   { width: 130px; }
+    .col-atr-high  { width: 130px; }
 
     .ticker-table thead th {
       font-size: 0.72rem;
@@ -83,6 +84,7 @@
     .ticker-table thead th.col-sts,
     .ticker-table thead th.col-atr-low,
     .ticker-table thead th.col-atr-high { text-align: right; padding-right: 8px; white-space: nowrap; }
+    .ticker-table thead th.col-intraday,
     .ticker-table thead th.col-chg { text-align: center; }
     .ticker-table thead th.sortable { cursor: pointer; user-select: none; }
     .ticker-table thead th.sortable:hover { background: #d8dde3; }
@@ -117,13 +119,7 @@
     .chg-cell { padding: 0 !important; }
     .chg-wrap { position: relative; padding: 0 6px; text-align: right; }
     .chg-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .chg-text {
-      position: relative;
-      font-size: 0.88rem;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      color: var(--text);
-    }
+    .chg-text { position: relative; font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
 
     footer {
       max-width: 900px;
@@ -156,14 +152,16 @@
   <table class="ticker-table">
     <colgroup>
       <col class="col-market"><col class="col-index">
-      <col class="col-rs"><col class="col-sts"><col class="col-chg">
+      <col class="col-rs"><col class="col-sts">
+      <col class="col-intraday"><col class="col-chg">
       <col class="col-atr-low"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">Market</th><th class="col-index">Symbol</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-sts sortable" data-sort="sts" data-tbody="ticker-body">RS_STS%<span class="sort-arrow"></span></th>
-      <th class="col-chg sortable" data-sort="chg" data-tbody="ticker-body">% Daily Change<span class="sort-arrow"></span></th>
+      <th class="col-intraday sortable" data-sort="intraday" data-tbody="ticker-body">Intraday %<span class="sort-arrow"></span></th>
+      <th class="col-chg sortable" data-sort="chg" data-tbody="ticker-body">Daily %<span class="sort-arrow"></span></th>
       <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
       <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
     </tr></thead>
@@ -173,14 +171,16 @@
   <table class="ticker-table">
     <colgroup>
       <col class="col-market"><col class="col-index">
-      <col class="col-rs"><col class="col-sts"><col class="col-chg">
+      <col class="col-rs"><col class="col-sts">
+      <col class="col-intraday"><col class="col-chg">
       <col class="col-atr-low"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">Sub-Market</th><th class="col-index">Symbol</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-sts sortable" data-sort="sts" data-tbody="sub-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
-      <th class="col-chg sortable" data-sort="chg" data-tbody="sub-ticker-body">% Daily Change<span class="sort-arrow"></span></th>
+      <th class="col-intraday sortable" data-sort="intraday" data-tbody="sub-ticker-body">Intraday %<span class="sort-arrow"></span></th>
+      <th class="col-chg sortable" data-sort="chg" data-tbody="sub-ticker-body">Daily %<span class="sort-arrow"></span></th>
       <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sub-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
       <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sub-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
     </tr></thead>
@@ -190,14 +190,16 @@
   <table class="ticker-table">
     <colgroup>
       <col class="col-market"><col class="col-index">
-      <col class="col-rs"><col class="col-sts"><col class="col-chg">
+      <col class="col-rs"><col class="col-sts">
+      <col class="col-intraday"><col class="col-chg">
       <col class="col-atr-low"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">Sector</th><th class="col-index">Symbol</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-sts sortable" data-sort="sts" data-tbody="sector-ticker-body">RS_STS%<span class="sort-arrow"></span></th>
-      <th class="col-chg sortable" data-sort="chg" data-tbody="sector-ticker-body">% Daily Change<span class="sort-arrow"></span></th>
+      <th class="col-intraday sortable" data-sort="intraday" data-tbody="sector-ticker-body">Intraday %<span class="sort-arrow"></span></th>
+      <th class="col-chg sortable" data-sort="chg" data-tbody="sector-ticker-body">Daily %<span class="sort-arrow"></span></th>
       <th class="col-atr-low sortable" data-sort="atrLow" data-tbody="sector-ticker-body">52WL Dist (ATR%)<span class="sort-arrow"></span></th>
       <th class="col-atr-high sortable" data-sort="atrHigh" data-tbody="sector-ticker-body">52WH Dist (ATR%)<span class="sort-arrow"></span></th>
     </tr></thead>
@@ -322,18 +324,19 @@ function buildChgBarSVG(val, mode, maxAbs) {
 
 // ── Sort state ────────────────────────────────────────────────────────────────
 const sortState = {};   // { tbodyId: { col, dir } }  dir: -1=desc, 1=asc
-let _series = {}, _changes = {}, _atrMetrics = {};
+let _series = {}, _changes = {}, _intraday = {}, _atrMetrics = {};
 
-function getSortValue(ticker, col, series, changes, atrMetrics) {
+function getSortValue(ticker, col, series, changes, intraday, atrMetrics) {
   if (col === 'sts') {
     const vals = (series[ticker] ?? []).slice(-N_BARS);
     if (!vals.length) return -Infinity;
     const pr = percentRank(vals, vals[vals.length - 1]);
     return pr ?? -Infinity;
   }
-  if (col === 'chg')     return changes[ticker]                ?? -Infinity;
-  if (col === 'atrLow')  return atrMetrics?.[ticker]?.atr_low  ?? -Infinity;
-  if (col === 'atrHigh') return atrMetrics?.[ticker]?.atr_high ?? -Infinity;
+  if (col === 'intraday') return intraday[ticker]                ?? -Infinity;
+  if (col === 'chg')      return changes[ticker]                 ?? -Infinity;
+  if (col === 'atrLow')   return atrMetrics?.[ticker]?.atr_low  ?? -Infinity;
+  if (col === 'atrHigh')  return atrMetrics?.[ticker]?.atr_high ?? -Infinity;
   return 0;
 }
 
@@ -350,19 +353,25 @@ function updateSortArrows() {
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
-function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
+function barMode(vals) {
+  const hasPos = vals.some(v => v > 0), hasNeg = vals.some(v => v < 0);
+  return (hasPos && hasNeg) ? 'butterfly' : hasPos ? 'allPos' : 'allNeg';
+}
+
+function renderSection(displayOrder, tbodyId, series, changes, intraday, atrMetrics) {
   const ss    = sortState[tbodyId];
   const order = ss
     ? [...displayOrder].sort((a, b) =>
-        (getSortValue(a.ticker, ss.col, series, changes, atrMetrics) -
-         getSortValue(b.ticker, ss.col, series, changes, atrMetrics)) * ss.dir)
+        (getSortValue(a.ticker, ss.col, series, changes, intraday, atrMetrics) -
+         getSortValue(b.ticker, ss.col, series, changes, intraday, atrMetrics)) * ss.dir)
     : displayOrder;
 
-  const allChg  = order.map(({ ticker }) => changes[ticker]).filter(v => v != null);
-  const hasPos  = allChg.some(v => v > 0);
-  const hasNeg  = allChg.some(v => v < 0);
-  const maxAbs  = Math.max(...allChg.map(Math.abs), 0.01);
-  const chgMode = (hasPos && hasNeg) ? 'butterfly' : hasPos ? 'allPos' : 'allNeg';
+  const allChg     = order.map(({ ticker }) => changes[ticker]).filter(v => v != null);
+  const allIntra   = order.map(({ ticker }) => intraday[ticker]).filter(v => v != null);
+  const maxAbsChg  = Math.max(...allChg.map(Math.abs),   0.01);
+  const maxAbsIntra = Math.max(...allIntra.map(Math.abs), 0.01);
+  const chgMode    = barMode(allChg);
+  const intraMode  = barMode(allIntra);
 
   document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
     const isSpy  = ticker === 'SPY';
@@ -377,7 +386,11 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
         stsHtml = `<span class="num-value">${Math.round(pr * 100)}%</span>`;
     }
 
-    // % Daily Change
+    // Intraday %
+    const intra     = intraday[ticker] ?? null;
+    const intraText = intra != null ? `${intra >= 0 ? '+' : ''}${intra.toFixed(2)}%` : '—';
+
+    // Daily %
     const chg     = changes[ticker] ?? null;
     const chgText = chg != null ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '—';
 
@@ -395,7 +408,8 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
       <td class="index-cell">${ticker}</td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="sts-cell">${stsHtml}</td>
-      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbs)}<span class="chg-text">${chgText}</span></div></td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(intra, intraMode, maxAbsIntra)}<span class="chg-text">${intraText}</span></div></td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${chgText}</span></div></td>
       <td class="atr-cell">${atrLowHtml}</td>
       <td class="atr-cell">${atrHighHtml}</td>
     </tr>`;
@@ -417,9 +431,10 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('dashboard').style.display = 'block';
 
-    _series     = latest.vars_series  ?? {};
-    _changes    = latest.daily_change ?? {};
-    _atrMetrics = latest.atr_metrics  ?? {};
+    _series     = latest.vars_series     ?? {};
+    _changes    = latest.daily_change   ?? {};
+    _intraday   = latest.intraday_change ?? {};
+    _atrMetrics = latest.atr_metrics    ?? {};
 
     const TBODY_TO_ORDER = {
       'ticker-body':        DISPLAY_ORDER,
@@ -427,14 +442,14 @@ function renderSection(displayOrder, tbodyId, series, changes, atrMetrics) {
       'sector-ticker-body': SECTOR_DISPLAY_ORDER,
     };
 
-    Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id, _series, _changes, _atrMetrics));
+    Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id, _series, _changes, _intraday, _atrMetrics));
 
     document.querySelectorAll('th.sortable').forEach(th => {
       th.addEventListener('click', () => {
         const { tbody: tbodyId, sort: col } = th.dataset;
         const cur = sortState[tbodyId];
         sortState[tbodyId] = cur?.col === col ? { col, dir: -cur.dir } : { col, dir: -1 };
-        renderSection(TBODY_TO_ORDER[tbodyId], tbodyId, _series, _changes, _atrMetrics);
+        renderSection(TBODY_TO_ORDER[tbodyId], tbodyId, _series, _changes, _intraday, _atrMetrics);
         updateSortArrows();
       });
     });
