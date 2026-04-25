@@ -353,13 +353,16 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict,
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main() -> None:
     last_day = get_last_trading_day()
-    log.info("Last trading day: %s", last_day)
+    et_now   = datetime.now(ZoneInfo("America/New_York"))
+    log.info("ET now: %s  →  last trading day: %s", et_now.strftime("%Y-%m-%d %H:%M"), last_day)
 
     if os.path.exists(LATEST_PATH):
         with open(LATEST_PATH) as f:
-            if json.load(f).get("date") == last_day.isoformat():
-                log.info("Data already up to date – nothing to do.")
-                sys.exit(0)
+            saved_date = json.load(f).get("date")
+        if saved_date == last_day.isoformat():
+            log.info("Already have data for %s – nothing to do.", last_day)
+            sys.exit(0)
+        log.info("Saved date is %s, need %s – fetching.", saved_date, last_day)
 
     start = last_day - timedelta(days=FETCH_DAYS)
 
