@@ -79,17 +79,24 @@ def get_last_trading_day() -> date:
 
 # ── Tiingo API ────────────────────────────────────────────────────────────────
 def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
-    """Return a DataFrame with columns [adjHigh, adjLow, adjClose]."""
+    """Return a DataFrame with columns [adjOpen, adjHigh, adjLow, adjClose]."""
     if not TIINGO_TOKEN:
         raise EnvironmentError("TIINGO_TOKEN is not set")
 
-    resp = requests.get(
-        f"https://api.tiingo.com/tiingo/daily/{ticker}/prices",
-        params={"startDate": start.isoformat(), "endDate": end.isoformat(),
-                "token": TIINGO_TOKEN, "resampleFreq": "daily"},
-        timeout=30,
-    )
-    resp.raise_for_status()
+    for attempt in range(5):
+        resp = requests.get(
+            f"https://api.tiingo.com/tiingo/daily/{ticker}/prices",
+            params={"startDate": start.isoformat(), "endDate": end.isoformat(),
+                    "token": TIINGO_TOKEN, "resampleFreq": "daily"},
+            timeout=30,
+        )
+        if resp.status_code == 429:
+            wait = 15 * (attempt + 1)
+            log.warning("  429 rate limit for %s, retrying in %ds …", ticker, wait)
+            time.sleep(wait)
+            continue
+        resp.raise_for_status()
+        break
     raw = resp.json()
     if not raw:
         raise ValueError(f"Tiingo returned no data for {ticker} ({start} – {end})")
@@ -243,7 +250,7 @@ def main() -> None:
     for ticker in TICKERS:
         log.info("  Fetching %s …", ticker)
         data[ticker] = fetch_tiingo(ticker, start, last_day)
-        time.sleep(0.5)   # avoid Tiingo rate limit
+        time.sleep(1.5)   # avoid Tiingo rate limit (~50 req/min)
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
