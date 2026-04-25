@@ -26,7 +26,7 @@
     },
     {
       "id": "sector-cw",
-      "label": "Sector (CW)",
+      "label": "SPDR Sector",
       "rows": [
         { "ticker": "XLK",  "label": "Technology *"             },
         { "ticker": "XLF",  "label": "Financials"               },
@@ -43,7 +43,7 @@
     },
     {
       "id": "sector-ew",
-      "label": "Sector (EW)",
+      "label": "EW Sector",
       "rows": [
         { "ticker": "RSPT", "label": "Technology *"             },
         { "ticker": "RSPF", "label": "Financials"               },
@@ -56,6 +56,31 @@
         { "ticker": "RSPU", "label": "Utilities"                },
         { "ticker": "RSPR", "label": "Real Estate"              },
         { "ticker": "RSPM", "label": "Materials"                }
+      ]
+    },
+    {
+      "id": "group-ew",
+      "label": "EW Group",
+      "rows": [
+        { "ticker": "XSD", "label": "Semiconductor" },
+        { "ticker": "GXC", "label": "China" },
+        { "ticker": "XHS", "label": "Health Care Services" },
+        { "ticker": "XBI", "label": "Biotech" },
+        { "ticker": "XHB", "label": "Homebuilders" },
+        { "ticker": "KIE", "label": "Insurance" },
+        { "ticker": "XHE", "label": "Healthcare Equpments" },
+        { "ticker": "KRE", "label": "Regional Banks" },
+        { "ticker": "XTN", "label": "Transportation" },
+        { "ticker": "XAR", "label": "Aerospace & Defence" },
+        { "ticker": "KBE", "label": "US Banks" },
+        { "ticker": "XOP", "label": "Oil & Gas Exploration & Production" },
+        { "ticker": "XPH", "label": "Pharmaceuticals" },
+        { "ticker": "XME", "label": "Metal & Minings" },
+        { "ticker": "GNR", "label": "Natural Resources" },
+        { "ticker": "XRT", "label": "Retail" },
+        { "ticker": "XSW", "label": "Software & Services" },
+        { "ticker": "XES", "label": "Oil & Gas Equipment & Services" },
+        { "ticker": "XTL", "label": "Telecom" }
       ]
     }
   ]
