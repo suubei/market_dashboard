@@ -1,6 +1,6 @@
 """
-Fetch daily OHLCV data via yfinance (Yahoo Finance), compute VARS for all
-non-SPY tickers vs SPY, and save results to data/ for GitHub Pages to serve.
+Fetch daily OHLCV data from Tiingo, compute VARS for all non-SPY tickers vs SPY,
+and save results to data/ for GitHub Pages to serve.
 
 VARS formula (mattishenner / Jeff Sun):
   vol_adj_change_t = (Close_t - Close_{t-1}) / ATR_t
@@ -12,11 +12,12 @@ import json
 import logging
 import os
 import sys
+import time
 from datetime import date, timedelta, datetime
 from zoneinfo import ZoneInfo
 
 import pandas as pd
-import yfinance as yf
+import requests
 import exchange_calendars as xcals
 
 logging.basicConfig(
@@ -27,42 +28,60 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 # ── Config ────────────────────────────────────────────────────────────────────
-BENCHMARK  = "SPY"
-ATR_PERIOD = 14
-LOOKBACK   = 50
-FETCH_DAYS = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
+TIINGO_TOKEN = os.environ.get("TIINGO_TOKEN", "")
+BENCHMARK    = "SPY"
+ATR_PERIOD   = 14
+LOOKBACK     = 50
+FETCH_DAYS   = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
+
+# Fetch the "main" sections first, then pause, then fetch group-cw.
+# Adjust BATCH_PAUSE_SEC if 429s still occur.
+INTER_REQUEST_SEC = 1.5
+BATCH_PAUSE_SEC   = 90    # pause between main sections and group-cw batch
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
 
 
-def load_tickers() -> list[str]:
-    """Return deduplicated ticker list from config.json, benchmark first."""
+def load_tickers_by_section() -> tuple[list[str], list[str]]:
+    """Return (main_tickers, group_cw_tickers), each deduplicated.
+
+    group-cw is fetched in a separate batch after a pause.
+    Benchmark (SPY) is prepended to main_tickers if not already present.
+    """
     with open(CONFIG_PATH) as f:
         cfg = json.load(f)
-    seen, tickers = set(), []
+
+    main_seen, group_seen = set(), set()
+    main_tickers, group_tickers = [], []
+
     for section in cfg["sections"]:
+        is_group = section["id"] == "group-cw"
         for row in section["rows"]:
             t = row["ticker"]
-            if t not in seen:
-                seen.add(t)
-                tickers.append(t)
-    if BENCHMARK not in seen:
-        tickers.insert(0, BENCHMARK)
-    return tickers
+            if is_group:
+                if t not in group_seen and t not in main_seen:
+                    group_seen.add(t)
+                    group_tickers.append(t)
+            else:
+                if t not in main_seen:
+                    main_seen.add(t)
+                    main_tickers.append(t)
+
+    if BENCHMARK not in main_seen:
+        main_tickers.insert(0, BENCHMARK)
+
+    return main_tickers, group_tickers
 
 
-TICKERS = load_tickers()
+MAIN_TICKERS, GROUP_TICKERS = load_tickers_by_section()
+TICKERS = MAIN_TICKERS + GROUP_TICKERS
 
 
 # ── Trading calendar ──────────────────────────────────────────────────────────
 def get_last_trading_day() -> date:
-    """Return the most recent completed NYSE session.
-
-    Uses ET time: if it's before 4:15 PM ET, today's session isn't closed yet,
-    so fall back to the previous trading day.
-    """
+    """Return the most recent completed NYSE session."""
     cal = xcals.get_calendar("XNYS")
     et_now  = datetime.now(ZoneInfo("America/New_York"))
     cutoff  = et_now.replace(hour=16, minute=15, second=0, microsecond=0)
@@ -74,52 +93,45 @@ def get_last_trading_day() -> date:
     raise RuntimeError("Could not find last trading day within 10 days")
 
 
-# ── Yahoo Finance download ─────────────────────────────────────────────────────
-def fetch_all(tickers: list[str], start: date, end: date) -> dict[str, pd.DataFrame]:
-    """Batch-download all tickers in a single yfinance call.
+# ── Tiingo API ────────────────────────────────────────────────────────────────
+def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
+    """Return a DataFrame with columns [adjOpen, adjHigh, adjLow, adjClose]."""
+    if not TIINGO_TOKEN:
+        raise EnvironmentError("TIINGO_TOKEN is not set")
 
-    yfinance end date is exclusive, so we pass end + 1 day.
-    Returns {ticker: DataFrame(adjOpen, adjHigh, adjLow, adjClose)}.
-    """
-    end_excl = end + timedelta(days=1)
-    log.info("Downloading %d tickers from %s to %s …", len(tickers), start, end)
-
-    raw = yf.download(
-        tickers,
-        start=start.isoformat(),
-        end=end_excl.isoformat(),
-        auto_adjust=True,
-        progress=False,
-        threads=True,
+    resp = requests.get(
+        f"https://api.tiingo.com/tiingo/daily/{ticker}/prices",
+        params={"startDate": start.isoformat(), "endDate": end.isoformat(),
+                "token": TIINGO_TOKEN, "resampleFreq": "daily"},
+        timeout=30,
     )
+    resp.raise_for_status()
+    raw = resp.json()
+    if not raw:
+        raise ValueError(f"Tiingo returned no data for {ticker} ({start} – {end})")
 
-    # Normalise tz-aware index to tz-naive date index
-    raw.index = raw.index.tz_localize(None) if raw.index.tz else raw.index
-    raw.index = raw.index.normalize()
+    df = pd.DataFrame(raw)
+    df["date"] = pd.to_datetime(df["date"]).dt.normalize().dt.tz_localize(None)
+    df = df.set_index("date").sort_index()
 
-    result = {}
-    if len(tickers) == 1:
-        ticker = tickers[0]
-        df = raw[["Open", "High", "Low", "Close"]].copy()
-        df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
-        result[ticker] = df.dropna()
-    else:
-        for ticker in tickers:
-            try:
-                df = raw.xs(ticker, level=1, axis=1)[["Open", "High", "Low", "Close"]].copy()
-                df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
-                df = df.dropna()
-                if df.empty:
-                    log.warning("  No data for %s", ticker)
-                else:
-                    result[ticker] = df
-            except KeyError:
-                log.warning("  Ticker %s not found in downloaded data", ticker)
-
-    missing = [t for t in tickers if t not in result]
+    needed = {"adjOpen", "adjHigh", "adjLow", "adjClose"}
+    missing = needed - set(df.columns)
     if missing:
-        log.warning("Missing data for: %s", missing)
-    return result
+        raise ValueError(f"Tiingo response for {ticker} missing columns: {missing}")
+
+    return df[["adjOpen", "adjHigh", "adjLow", "adjClose"]]
+
+
+def fetch_batch(tickers: list[str], start: date, end: date,
+                label: str) -> dict[str, pd.DataFrame]:
+    """Fetch a list of tickers with per-request throttling."""
+    data = {}
+    log.info("Fetching %s batch (%d tickers) …", label, len(tickers))
+    for ticker in tickers:
+        log.info("  %s", ticker)
+        data[ticker] = fetch_tiingo(ticker, start, end)
+        time.sleep(INTER_REQUEST_SEC)
+    return data
 
 
 # ── VARS calculation ──────────────────────────────────────────────────────────
@@ -134,7 +146,7 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
 def compute_vars(data: dict) -> tuple:
     """
     Returns (results, series):
-      results = {ticker: float}              – latest VARS value per ticker
+      results = {ticker: float}
       series  = {"dates": [...], ticker: [float × LOOKBACK], ...}
     """
     spy_cum = (data[BENCHMARK]["adjClose"].diff() / wilder_atr(data[BENCHMARK], ATR_PERIOD)
@@ -150,10 +162,10 @@ def compute_vars(data: dict) -> tuple:
 
         t_aligned, spy_aligned = cum.align(spy_cum, join="inner")
         if t_aligned.empty:
-            raise ValueError(f"No overlapping dates between {ticker} and {BENCHMARK}")
+            log.warning("  No overlapping dates for %s – skipping", ticker)
+            continue
 
         recent = (t_aligned - spy_aligned).dropna().iloc[-LOOKBACK:]
-
         if recent.empty:
             log.warning("  No valid VARS data for %s – skipping", ticker)
             continue
@@ -200,7 +212,7 @@ def compute_intraday_changes(data: dict) -> dict:
 def compute_atr_metrics(data: dict) -> dict:
     """
     For each ticker compute ATR%-normalised distance from 52W extremes:
-      atr_low  = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)  — higher = stronger
+      atr_low  = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)
       atr_high = ((Close - High_52w) / High_52w) / (ATR / Close)  — positive = new 52W high
     """
     metrics = {}
@@ -263,7 +275,14 @@ def main() -> None:
                 sys.exit(0)
 
     start = last_day - timedelta(days=FETCH_DAYS)
-    data  = fetch_all(TICKERS, start, last_day)
+
+    # Fetch main sections first, then pause, then fetch group-cw
+    data = fetch_batch(MAIN_TICKERS, start, last_day, "main")
+
+    if GROUP_TICKERS:
+        log.info("Pausing %ds before group-cw batch to respect rate limit …", BATCH_PAUSE_SEC)
+        time.sleep(BATCH_PAUSE_SEC)
+        data.update(fetch_batch(GROUP_TICKERS, start, last_day, "group-cw"))
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
