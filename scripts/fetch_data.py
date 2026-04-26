@@ -345,16 +345,21 @@ def compute_daily_changes(data: dict) -> dict:
     return changes
 
 
-def compute_weekly_changes(data: dict) -> dict:
-    """Return {ticker: weekly_pct_change} — Close vs Close 5 trading days ago."""
+def compute_weekly_changes(data: dict, last_day: date) -> dict:
+    """Return {ticker: weekly_pct_change} — Close vs last Friday's Close."""
+    prev_friday = get_last_week_friday(last_day)
+    prev_ts     = pd.Timestamp(prev_friday)
     changes = {}
     for ticker in TICKERS:
         if ticker not in data:
             continue
         close = data[ticker]["adjClose"].dropna()
-        if len(close) >= 6:
+        if prev_ts not in close.index:
+            continue
+        baseline = float(close.loc[prev_ts])
+        if baseline != 0:
             changes[ticker] = round(
-                (close.iloc[-1] - close.iloc[-6]) / close.iloc[-6] * 100, 2
+                (close.iloc[-1] - baseline) / baseline * 100, 2
             )
     return changes
 
@@ -487,7 +492,7 @@ def main() -> None:
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
-    weekly_changes   = compute_weekly_changes(data)
+    weekly_changes   = compute_weekly_changes(data, last_day)
     intraday_changes = compute_intraday_changes(data)
     atr_metrics      = compute_atr_metrics(data, last_day)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
