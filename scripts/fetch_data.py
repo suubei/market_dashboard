@@ -79,6 +79,21 @@ def get_last_trading_day() -> date:
     raise RuntimeError("Could not find last trading day within 10 days")
 
 
+def get_last_week_friday(last_day: date) -> date:
+    """Return the most recent Friday NYSE session strictly before last_day.
+
+    If last_day is a Friday, returns the previous Friday (i.e. the week-start
+    baseline is always the Friday of the prior week).
+    Handles holidays by skipping non-session Fridays.
+    """
+    cal = xcals.get_calendar("XNYS")
+    for i in range(1, 21):   # look back up to 3 weeks
+        candidate = last_day - timedelta(days=i)
+        if candidate.weekday() == 4 and cal.is_session(pd.Timestamp(candidate)):
+            return candidate
+    raise RuntimeError("Could not find last Friday trading session")
+
+
 # ── Tiingo API ────────────────────────────────────────────────────────────────
 class RateLimitError(Exception):
     """Raised when Tiingo returns 429; signals the caller to wait and retry."""
@@ -360,12 +375,28 @@ def compute_intraday_changes(data: dict) -> dict:
     return changes
 
 
-def compute_atr_metrics(data: dict) -> dict:
+def _atr_low_series(df: pd.DataFrame) -> pd.Series:
+    """Return full time-series of ATR%-normalised distance from rolling 52W low."""
+    close     = df["adjClose"]
+    atr       = wilder_atr(df, ATR_PERIOD)
+    low_52w   = close.rolling(252, min_periods=1).min()
+    atr_pct   = atr / close
+    return ((close - low_52w) / low_52w) / atr_pct
+
+
+def compute_atr_metrics(data: dict, last_day: date) -> dict:
     """
-    For each ticker compute ATR%-normalised distance from 52W extremes:
-      atr_low  = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)
-      atr_high = ((Close - High_52w) / High_52w) / (ATR / Close)  — positive = new 52W high
+    For each ticker compute ATR%-normalised distance from 52W extremes, plus
+    weekly change in atr_low vs the previous Friday's closing value.
+
+      atr_low        = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)
+      atr_high       = ((Close - High_52w) / High_52w) / (ATR / Close)
+      atr_low_wk_chg = atr_low_today - atr_low_last_friday
     """
+    prev_friday = get_last_week_friday(last_day)
+    prev_ts     = pd.Timestamp(prev_friday)
+    log.info("Weekly baseline: %s (last Friday before %s)", prev_friday, last_day)
+
     metrics = {}
     for ticker in TICKERS:
         if ticker not in data:
@@ -384,9 +415,20 @@ def compute_atr_metrics(data: dict) -> dict:
         high_52w = float(window.max())
         atr_pct  = atr_val / current
 
+        atr_low_now = (current - low_52w) / low_52w / atr_pct
+
+        # Weekly change: today vs last Friday
+        series = _atr_low_series(df)
+        atr_low_wk_chg = None
+        if prev_ts in series.index:
+            baseline = float(series.loc[prev_ts])
+            if not pd.isna(baseline):
+                atr_low_wk_chg = round(atr_low_now - baseline, 2)
+
         metrics[ticker] = {
-            "atr_low":  round((current - low_52w)  / low_52w  / atr_pct, 2),
-            "atr_high": round((current - high_52w) / high_52w / atr_pct, 2),
+            "atr_low":        round(atr_low_now, 2),
+            "atr_high":       round((current - high_52w) / high_52w / atr_pct, 2),
+            "atr_low_wk_chg": atr_low_wk_chg,
         }
     return metrics
 
@@ -438,7 +480,7 @@ def main() -> None:
     daily_changes    = compute_daily_changes(data)
     weekly_changes   = compute_weekly_changes(data)
     intraday_changes = compute_intraday_changes(data)
-    atr_metrics      = compute_atr_metrics(data)
+    atr_metrics      = compute_atr_metrics(data, last_day)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
     save_data(last_day, vars_result, vars_series, daily_changes, weekly_changes, intraday_changes, atr_metrics)
 

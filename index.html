@@ -68,6 +68,7 @@
     .col-chg       { width: 110px; }
     .col-weekly    { width: 110px; }
     .col-atr-low   { width: 155px; }
+    .col-atr-wkchg { width: 110px; }
     .col-atr-high  { width: 155px; }
 
     .ticker-table thead th {
@@ -114,6 +115,7 @@
     .sts-cell, .atr-cell { text-align: right; padding-right: 8px; }
     .num-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
     .atr-new-high { color: var(--pos); }
+    .atr-neg      { color: var(--neg); }
 
     .chg-cell { padding: 0 !important; }
     .chg-wrap { position: relative; padding: 0 6px; text-align: right; }
@@ -182,7 +184,7 @@ function percentRank(values, val) {
 // ── Table builder ─────────────────────────────────────────────────────────────
 function buildTable(section) {
   const id = `${section.id}-body`;
-  const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', atrLow: 'col-atr-low', atrHigh: 'col-atr-high' };
+  const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', atrLow: 'col-atr-low', atrWkChg: 'col-atr-wkchg', atrHigh: 'col-atr-high' };
   const sortTh = (col, label) =>
     `<th class="${colClass[col]} sortable" data-sort="${col}" data-tbody="${id}">${label}<span class="sort-arrow"></span></th>`;
   return `<table class="ticker-table">
@@ -191,7 +193,7 @@ function buildTable(section) {
       <col class="col-rs"><col class="col-sts">
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly">
-      <col class="col-atr-low"><col class="col-atr-high">
+      <col class="col-atr-low"><col class="col-atr-wkchg"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">${section.label}</th>
@@ -202,6 +204,7 @@ function buildTable(section) {
       ${sortTh('chg', 'Daily %')}
       ${sortTh('weekly', 'Weekly %')}
       ${sortTh('atrLow', '52WL Dist (ATR%)')}
+      ${sortTh('atrWkChg', '52WL Chg')}
       ${sortTh('atrHigh', '52WH Dist (ATR%)')}
     </tr></thead>
     <tbody id="${id}"></tbody>
@@ -274,8 +277,9 @@ function getSortValue(ticker, col, series, changes, weekly, intraday, atrMetrics
   if (col === 'intraday') return intraday[ticker]                ?? -Infinity;
   if (col === 'chg')      return changes[ticker]                 ?? -Infinity;
   if (col === 'weekly')   return weekly[ticker]                  ?? -Infinity;
-  if (col === 'atrLow')   return atrMetrics?.[ticker]?.atr_low  ?? -Infinity;
-  if (col === 'atrHigh')  return atrMetrics?.[ticker]?.atr_high ?? -Infinity;
+  if (col === 'atrLow')   return atrMetrics?.[ticker]?.atr_low        ?? -Infinity;
+  if (col === 'atrWkChg') return atrMetrics?.[ticker]?.atr_low_wk_chg ?? -Infinity;
+  if (col === 'atrHigh')  return atrMetrics?.[ticker]?.atr_high       ?? -Infinity;
   return 0;
 }
 
@@ -341,10 +345,16 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
     const wklyText = wkly != null ? `${wkly >= 0 ? '+' : ''}${wkly.toFixed(2)}%` : '—';
 
     // ATR metrics
-    const m       = atrMetrics?.[ticker];
-    const atrLow  = m?.atr_low  ?? null;
-    const atrHigh = m?.atr_high ?? null;
-    const atrLowHtml  = atrLow  != null ? `<span class="num-value">${atrLow.toFixed(1)}</span>`  : '<span class="num-value">—</span>';
+    const m          = atrMetrics?.[ticker];
+    const atrLow     = m?.atr_low        ?? null;
+    const atrWkChg   = m?.atr_low_wk_chg ?? null;
+    const atrHigh    = m?.atr_high       ?? null;
+    const atrLowHtml = atrLow != null
+      ? `<span class="num-value">${atrLow.toFixed(1)}</span>`
+      : '<span class="num-value">—</span>';
+    const atrWkChgHtml = atrWkChg != null
+      ? `<span class="num-value${atrWkChg > 0 ? ' atr-new-high' : atrWkChg < 0 ? ' atr-neg' : ''}">${atrWkChg >= 0 ? '+' : ''}${atrWkChg.toFixed(1)}</span>`
+      : '<span class="num-value">—</span>';
     const atrHighHtml = atrHigh != null
       ? `<span class="num-value${atrHigh > 0 ? ' atr-new-high' : ''}">${atrHigh.toFixed(1)}</span>`
       : '<span class="num-value">—</span>';
@@ -358,6 +368,7 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${chgText}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(wkly, weeklyMode, maxAbsWeekly)}<span class="chg-text">${wklyText}</span></div></td>
       <td class="atr-cell">${atrLowHtml}</td>
+      <td class="atr-cell">${atrWkChgHtml}</td>
       <td class="atr-cell">${atrHighHtml}</td>
     </tr>`;
   }).join('');
