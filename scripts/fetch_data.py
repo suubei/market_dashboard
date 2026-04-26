@@ -375,13 +375,17 @@ def compute_intraday_changes(data: dict) -> dict:
     return changes
 
 
-def _atr_low_series(df: pd.DataFrame) -> pd.Series:
-    """Return full time-series of ATR%-normalised distance from rolling 52W low."""
-    close     = df["adjClose"]
-    atr       = wilder_atr(df, ATR_PERIOD)
-    low_52w   = close.rolling(252, min_periods=1).min()
-    atr_pct   = atr / close
-    return ((close - low_52w) / low_52w) / atr_pct
+def _atr_dist_series(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    """Return (atr_low_series, atr_high_series) — full time-series for both 52W extremes."""
+    close    = df["adjClose"]
+    atr      = wilder_atr(df, ATR_PERIOD)
+    low_52w  = close.rolling(252, min_periods=1).min()
+    high_52w = close.rolling(252, min_periods=1).max()
+    atr_pct  = atr / close
+    return (
+        ((close - low_52w)  / low_52w)  / atr_pct,
+        ((close - high_52w) / high_52w) / atr_pct,
+    )
 
 
 def compute_atr_metrics(data: dict, last_day: date) -> dict:
@@ -415,20 +419,25 @@ def compute_atr_metrics(data: dict, last_day: date) -> dict:
         high_52w = float(window.max())
         atr_pct  = atr_val / current
 
-        atr_low_now = (current - low_52w) / low_52w / atr_pct
+        atr_low_now  = (current - low_52w)  / low_52w  / atr_pct
+        atr_high_now = (current - high_52w) / high_52w / atr_pct
 
         # Weekly change: today vs last Friday
-        series = _atr_low_series(df)
-        atr_low_wk_chg = None
-        if prev_ts in series.index:
-            baseline = float(series.loc[prev_ts])
-            if not pd.isna(baseline):
-                atr_low_wk_chg = round(atr_low_now - baseline, 2)
+        low_series, high_series = _atr_dist_series(df)
+        atr_low_wk_chg = atr_high_wk_chg = None
+        if prev_ts in low_series.index:
+            bl_low  = float(low_series.loc[prev_ts])
+            bl_high = float(high_series.loc[prev_ts])
+            if not pd.isna(bl_low):
+                atr_low_wk_chg  = round(atr_low_now  - bl_low,  2)
+            if not pd.isna(bl_high):
+                atr_high_wk_chg = round(atr_high_now - bl_high, 2)
 
         metrics[ticker] = {
-            "atr_low":        round(atr_low_now, 2),
-            "atr_high":       round((current - high_52w) / high_52w / atr_pct, 2),
-            "atr_low_wk_chg": atr_low_wk_chg,
+            "atr_low":         round(atr_low_now,  2),
+            "atr_high":        round(atr_high_now, 2),
+            "atr_low_wk_chg":  atr_low_wk_chg,
+            "atr_high_wk_chg": atr_high_wk_chg,
         }
     return metrics
 
