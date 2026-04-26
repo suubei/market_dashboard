@@ -170,7 +170,8 @@
         { "ticker": "URNM", "label": "Uranium Miners" },
         { "ticker": "WGMI", "label": "Crypto Mining" },
         { "ticker": "GBTC", "label": "Bitcoin Trust" },
-        { "ticker": "BITW", "label": "Crypto Index" }
+        { "ticker": "BITW", "label": "Crypto Index" },
+        { "ticker": "UFO", "label": "Space & Satellite" }
       ]
     }
   ]
