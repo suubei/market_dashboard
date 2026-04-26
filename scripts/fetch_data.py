@@ -280,6 +280,20 @@ def compute_daily_changes(data: dict) -> dict:
     return changes
 
 
+def compute_weekly_changes(data: dict) -> dict:
+    """Return {ticker: weekly_pct_change} — Close vs Close 5 trading days ago."""
+    changes = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        close = data[ticker]["adjClose"].dropna()
+        if len(close) >= 6:
+            changes[ticker] = round(
+                (close.iloc[-1] - close.iloc[-6]) / close.iloc[-6] * 100, 2
+            )
+    return changes
+
+
 def compute_intraday_changes(data: dict) -> dict:
     """Return {ticker: intraday_pct_change} — latest Close vs latest Open."""
     changes = {}
@@ -329,7 +343,8 @@ def compute_atr_metrics(data: dict) -> dict:
 
 # ── Persistence ───────────────────────────────────────────────────────────────
 def save_data(trade_date: date, vars_result: dict, vars_series: dict,
-              daily_changes: dict, intraday_changes: dict, atr_metrics: dict) -> None:
+              daily_changes: dict, weekly_changes: dict,
+              intraday_changes: dict, atr_metrics: dict) -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
 
@@ -340,6 +355,7 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict,
         "vars":             vars_result,
         "vars_series":      vars_series,
         "daily_change":     daily_changes,
+        "weekly_change":    weekly_changes,
         "intraday_change":  intraday_changes,
         "atr_metrics":      atr_metrics,
     }
@@ -370,10 +386,11 @@ def main() -> None:
 
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
+    weekly_changes   = compute_weekly_changes(data)
     intraday_changes = compute_intraday_changes(data)
     atr_metrics      = compute_atr_metrics(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
-    save_data(last_day, vars_result, vars_series, daily_changes, intraday_changes, atr_metrics)
+    save_data(last_day, vars_result, vars_series, daily_changes, weekly_changes, intraday_changes, atr_metrics)
 
 
 if __name__ == "__main__":
