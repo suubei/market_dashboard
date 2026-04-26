@@ -1,4 +1,5 @@
 {
+  "data_source": "yahoo",
   "sections": [
     {
       "id": "market",

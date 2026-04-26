@@ -1,6 +1,6 @@
 """
-Fetch daily OHLCV data from Tiingo, compute VARS for all non-SPY tickers vs SPY,
-and save results to data/ for GitHub Pages to serve.
+Fetch daily OHLCV data and compute VARS for all non-SPY tickers vs SPY.
+Data source is configured via data/config.json: "data_source": "yahoo" | "tiingo"
 
 VARS formula (mattishenner / Jeff Sun):
   vol_adj_change_t = (Close_t - Close_{t-1}) / ATR_t
@@ -19,6 +19,7 @@ from zoneinfo import ZoneInfo
 
 import pandas as pd
 import requests
+import yfinance as yf
 import exchange_calendars as xcals
 
 logging.basicConfig(
@@ -44,10 +45,11 @@ CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
 CACHE_PATH  = os.path.join(DATA_DIR, "fetch_cache.json")
 
 
-def load_tickers() -> list[str]:
-    """Return deduplicated ticker list from config.json, benchmark first."""
+def load_config() -> tuple[list[str], str]:
+    """Return (tickers, data_source) from config.json."""
     with open(CONFIG_PATH) as f:
         cfg = json.load(f)
+    data_source = cfg.get("data_source", "tiingo")
     seen, tickers = set(), []
     for section in cfg["sections"]:
         for row in section["rows"]:
@@ -57,10 +59,10 @@ def load_tickers() -> list[str]:
                 tickers.append(t)
     if BENCHMARK not in seen:
         tickers.insert(0, BENCHMARK)
-    return tickers
+    return tickers, data_source
 
 
-TICKERS = load_tickers()
+TICKERS, DATA_SOURCE = load_config()
 
 
 # ── Trading calendar ──────────────────────────────────────────────────────────
@@ -130,6 +132,48 @@ def fetch_tiingo(ticker: str, start: date, end: date) -> pd.DataFrame:
     return df[["adjOpen", "adjHigh", "adjLow", "adjClose"]]
 
 
+# ── Yahoo Finance (batch) ─────────────────────────────────────────────────────
+def fetch_yahoo(tickers: list[str], start: date, end: date) -> dict[str, pd.DataFrame]:
+    """Batch-download all tickers in one yfinance call. No API key required."""
+    end_excl = end + timedelta(days=1)
+    log.info("Yahoo Finance: downloading %d tickers %s → %s …", len(tickers), start, end)
+
+    raw = yf.download(
+        tickers,
+        start=start.isoformat(),
+        end=end_excl.isoformat(),
+        auto_adjust=True,
+        progress=False,
+        threads=True,
+    )
+    raw.index = raw.index.tz_localize(None) if raw.index.tz else raw.index
+    raw.index = raw.index.normalize()
+
+    result = {}
+    if len(tickers) == 1:
+        ticker = tickers[0]
+        df = raw[["Open", "High", "Low", "Close"]].copy()
+        df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
+        result[ticker] = df.dropna()
+    else:
+        for ticker in tickers:
+            try:
+                df = raw.xs(ticker, level=1, axis=1)[["Open", "High", "Low", "Close"]].copy()
+                df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
+                df = df.dropna()
+                if df.empty:
+                    log.warning("  No data for %s", ticker)
+                else:
+                    result[ticker] = df
+            except KeyError:
+                log.warning("  %s not found in Yahoo response", ticker)
+
+    missing = [t for t in tickers if t not in result]
+    if missing:
+        log.warning("Missing tickers: %s", missing)
+    return result
+
+
 def load_cache(trade_date: date) -> dict[str, pd.DataFrame]:
     """Load per-ticker DataFrames from today's cache file, if it exists."""
     if not os.path.exists(CACHE_PATH):
@@ -179,7 +223,13 @@ def git_push_cache() -> None:
 
 def fetch_all(tickers: list[str], start: date, end: date,
               trade_date: date) -> dict[str, pd.DataFrame]:
-    """Fetch all tickers, resuming from cache and pausing every BATCH_SIZE requests."""
+    """Fetch all tickers via the configured data source."""
+    log.info("Data source: %s", DATA_SOURCE)
+
+    if DATA_SOURCE == "yahoo":
+        return fetch_yahoo(tickers, start, end)
+
+    # ── Tiingo: resume from cache, batch with pauses ──────────────────────────
     data = load_cache(trade_date)
     remaining = [t for t in tickers if t not in data]
 
