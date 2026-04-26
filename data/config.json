@@ -26,23 +26,6 @@
       ]
     },
     {
-      "id": "sector-cw",
-      "label": "SPDR Sector",
-      "rows": [
-        { "ticker": "XLK",  "label": "Technology *"             },
-        { "ticker": "XLF",  "label": "Financials"               },
-        { "ticker": "XLV",  "label": "Health Care *"            },
-        { "ticker": "XLY",  "label": "Consumer Discretionary *" },
-        { "ticker": "XLI",  "label": "Industrials *"            },
-        { "ticker": "XLC",  "label": "Communication Services"   },
-        { "ticker": "XLP",  "label": "Consumer Staples"         },
-        { "ticker": "XLE",  "label": "Energy *"                 },
-        { "ticker": "XLU",  "label": "Utilities"                },
-        { "ticker": "XLRE", "label": "Real Estate"              },
-        { "ticker": "XLB",  "label": "Materials"                }
-      ]
-    },
-    {
       "id": "sector-ew",
       "label": "EW Sector",
       "rows": [
@@ -57,6 +40,23 @@
         { "ticker": "RSPU", "label": "Utilities"                },
         { "ticker": "RSPR", "label": "Real Estate"              },
         { "ticker": "RSPM", "label": "Materials"                }
+      ]
+    },
+    {
+      "id": "sector-cw",
+      "label": "SPDR Sector",
+      "rows": [
+        { "ticker": "XLK",  "label": "Technology *"             },
+        { "ticker": "XLF",  "label": "Financials"               },
+        { "ticker": "XLV",  "label": "Health Care *"            },
+        { "ticker": "XLY",  "label": "Consumer Discretionary *" },
+        { "ticker": "XLI",  "label": "Industrials *"            },
+        { "ticker": "XLC",  "label": "Communication Services"   },
+        { "ticker": "XLP",  "label": "Consumer Staples"         },
+        { "ticker": "XLE",  "label": "Energy *"                 },
+        { "ticker": "XLU",  "label": "Utilities"                },
+        { "ticker": "XLRE", "label": "Real Estate"              },
+        { "ticker": "XLB",  "label": "Materials"                }
       ]
     },
     {
