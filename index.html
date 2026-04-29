@@ -57,8 +57,8 @@
 
     #dashboard { max-width: 1445px; margin: 0 auto; display: none; }
 
-    /* separate borders: avoids 1px seam above sticky thead with border-collapse: collapse */
-    .ticker-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    /* separate borders (sticky thead); horizontal gap only between columns */
+    .ticker-table { width: 100%; border-collapse: separate; border-spacing: 6px 0; table-layout: fixed; }
 
     .col-market    { width: 210px; }
     .col-index     { width: 70px; }
