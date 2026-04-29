@@ -68,9 +68,9 @@
     .col-chg       { width: 110px; }
     .col-weekly    { width: 110px; }
     .col-atr-low   { width: 155px; }
-    .col-atr-wkchg { width: 110px; }
+    .col-atr-wkchg { width: 155px; }
     .col-atr-high  { width: 155px; }
-    .col-atr-hchg  { width: 110px; }
+    .col-atr-hchg  { width: 155px; }
 
     .ticker-table thead th {
       font-size: 0.72rem;
@@ -80,7 +80,6 @@
       color: var(--muted);
       padding: 4px 0;
       background: #e8ecf0;
-      border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       text-align: center;
     }
@@ -97,7 +96,7 @@
       height: 32px;
       border-top: 1px solid var(--border);
     }
-    .ticker-row:last-child { border-bottom: 1px solid var(--border); }
+
     .ticker-row td {
       padding: 0;
       height: 32px;
@@ -194,8 +193,8 @@ function buildTable(section) {
       <col class="col-rs"><col class="col-sts">
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly">
-      <col class="col-atr-low"><col class="col-atr-wkchg">
-      <col class="col-atr-high"><col class="col-atr-hchg">
+      <col class="col-atr-wkchg"><col class="col-atr-low">
+      <col class="col-atr-hchg"><col class="col-atr-high">
     </colgroup>
     <thead><tr>
       <th class="col-market">${section.label}</th>
@@ -205,10 +204,10 @@ function buildTable(section) {
       ${sortTh('intraday', 'Intraday %')}
       ${sortTh('chg', 'Daily %')}
       ${sortTh('weekly', 'Weekly %')}
-      ${sortTh('atrLow', '52WL Dist (ATR%)')}
       ${sortTh('atrLowPrevFri', '52WL Dist (Prev Fri)')}
-      ${sortTh('atrHigh', '52WH Dist (ATR%)')}
+      ${sortTh('atrLow', '52WL Dist (ATR%)')}
       ${sortTh('atrHighPrevFri', '52WH Dist (Prev Fri)')}
+      ${sortTh('atrHigh', '52WH Dist (ATR%)')}
     </tr></thead>
     <tbody id="${id}"></tbody>
   </table>`;
@@ -375,10 +374,10 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(intra, intraMode, maxAbsIntra)}<span class="chg-text">${intraText}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${chgText}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(wkly, weeklyMode, maxAbsWeekly)}<span class="chg-text">${wklyText}</span></div></td>
-      <td class="atr-cell">${atrLowHtml}</td>
       <td class="atr-cell">${atrLowPrevFriHtml}</td>
-      <td class="atr-cell">${atrHighHtml}</td>
+      <td class="atr-cell">${atrLowHtml}</td>
       <td class="atr-cell">${atrHighPrevFriHtml}</td>
+      <td class="atr-cell">${atrHighHtml}</td>
     </tr>`;
   }).join('');
 }
