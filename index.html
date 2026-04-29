@@ -23,12 +23,12 @@
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
       min-height: 100vh;
-      padding: 28px 15vw 56px;
+      padding: 28px 24px 56px;
     }
 
     header {
       max-width: 900px;
-      margin: 0 0 28px;
+      margin: 0 auto 28px;
       padding-bottom: 16px;
     }
     header h1 { font-size: 1.25rem; font-weight: 600; }
@@ -44,7 +44,7 @@
 
     #status {
       max-width: 900px;
-      margin: 0 0 20px;
+      margin: 0 auto 20px;
       padding: 10px 14px;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -55,7 +55,7 @@
     }
     #status.error { border-color: var(--neg); color: var(--neg); }
 
-    #dashboard { max-width: 900px; display: none; }
+    #dashboard { max-width: 900px; margin: 0 auto; display: none; }
 
     .ticker-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
@@ -125,7 +125,7 @@
 
     footer {
       max-width: 900px;
-      margin: 28px 0 0;
+      margin: 28px auto 0;
       padding-top: 14px;
       font-size: 0.72rem;
       color: var(--muted);
