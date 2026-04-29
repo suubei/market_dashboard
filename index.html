@@ -29,7 +29,6 @@
     header {
       max-width: 900px;
       margin: 0 0 28px;
-      border-bottom: 1px solid var(--border);
       padding-bottom: 16px;
     }
     header h1 { font-size: 1.25rem; font-weight: 600; }
@@ -68,9 +67,9 @@
     .col-chg       { width: 110px; }
     .col-weekly    { width: 110px; }
     .col-atr-low   { width: 155px; }
-    .col-atr-wkchg { width: 155px; }
+    .col-atr-wkchg { width: 175px; }
     .col-atr-high  { width: 155px; }
-    .col-atr-hchg  { width: 155px; }
+    .col-atr-hchg  { width: 175px; }
 
     .ticker-table thead th {
       font-size: 0.72rem;
@@ -80,6 +79,7 @@
       color: var(--muted);
       padding: 4px 0;
       background: #e8ecf0;
+      border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       text-align: center;
     }
@@ -96,6 +96,7 @@
       height: 32px;
       border-top: 1px solid var(--border);
     }
+    .ticker-row:last-child { border-bottom: 1px solid var(--border); }
 
     .ticker-row td {
       padding: 0;
@@ -126,7 +127,6 @@
       max-width: 900px;
       margin: 28px 0 0;
       padding-top: 14px;
-      border-top: 1px solid var(--border);
       font-size: 0.72rem;
       color: var(--muted);
       display: flex;
