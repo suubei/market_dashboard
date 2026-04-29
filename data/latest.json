@@ -1,6 +1,6 @@
 {
-  "date": null,
-  "updated_at": null,
+  "date": "2026-04-28",
+  "updated_at": "2026-04-29T07:10:11Z",
   "params": {
     "atr_period": 14,
     "lookback": 50
@@ -411,7 +411,7 @@
       2.7137,
       2.539,
       2.2213,
-      1.0062,
+      1.0063,
       0.9602,
       0.4222,
       0.6489,
@@ -435,7 +435,7 @@
       0.9723,
       0.4772,
       0.5129,
-      0.3597,
+      0.3598,
       -0.3438,
       -0.4021,
       -0.4696,
@@ -565,7 +565,7 @@
       5.7134,
       5.7966,
       5.5755,
-      5.099,
+      5.0989,
       3.8884,
       2.5695,
       3.3839,
@@ -875,17 +875,17 @@
     "RSPH": [
       1.9307,
       2.5818,
-      2.8858,
+      2.8857,
       3.0224,
       4.5811,
-      3.1071,
+      3.107,
       1.99,
-      1.6847,
+      1.6846,
       2.1638,
       2.3041,
       0.983,
       1.6606,
-      0.6872,
+      0.6871,
       0.6242,
       1.6372,
       0.5991,
@@ -1470,7 +1470,7 @@
       -1.3671,
       -2.1682,
       -2.0505,
-      -0.5828,
+      -0.5827,
       -0.1624,
       0.921,
       -0.2861,
@@ -1658,7 +1658,7 @@
       10.4638,
       10.5088,
       11.9398,
-      12.2833,
+      12.2832,
       10.4781,
       9.0673,
       9.9891,
@@ -3016,7 +3016,7 @@
       -3.0871,
       -2.3727,
       -2.9794,
-      -2.1018,
+      -2.1019,
       -1.8263,
       -0.9434,
       -0.6908,
@@ -3424,7 +3424,7 @@
       7.3324,
       7.2314,
       7.6155,
-      7.0511,
+      7.051,
       8.9835,
       7.7504,
       6.1909,
@@ -3630,7 +3630,7 @@
     ],
     "PBJ": [
       10.206,
-      10.539,
+      10.5389,
       11.2918,
       11.2828,
       12.3028,
@@ -3755,7 +3755,7 @@
       8.2105,
       8.6392,
       9.9871,
-      10.1287,
+      10.1286,
       11.2855,
       8.5784,
       9.0421,
@@ -3854,7 +3854,7 @@
       20.2655,
       19.8234,
       19.6516,
-      18.0464,
+      18.0465,
       17.6818,
       17.7669,
       18.4576,
@@ -3951,7 +3951,7 @@
       2.2657,
       1.5813,
       0.747,
-      -0.0705,
+      -0.0704,
       -0.359,
       -0.9403,
       -0.5994,
@@ -4778,7 +4778,7 @@
       -1.6048,
       -2.4072,
       -3.244,
-      -3.0814,
+      -3.0815,
       -2.9978,
       -2.0358,
       -2.5799,
@@ -7690,824 +7690,824 @@
     "SPY": {
       "atr_low": 26.98,
       "atr_high": -0.43,
-      "atr_high_wk_chg": -0.43,
-      "atr_low_last_friday": 26.52
+      "atr_low_prev_friday": 26.52,
+      "atr_high_prev_friday": 0.0
     },
     "RSP": {
       "atr_low": 18.57,
       "atr_high": -1.41,
-      "atr_high_wk_chg": -0.57,
-      "atr_low_last_friday": 18.85
+      "atr_low_prev_friday": 18.85,
+      "atr_high_prev_friday": -0.84
     },
     "QQQ": {
       "atr_low": 25.66,
       "atr_high": -0.65,
-      "atr_high_wk_chg": -0.65,
-      "atr_low_last_friday": 26.53
+      "atr_low_prev_friday": 26.53,
+      "atr_high_prev_friday": 0.0
     },
     "QQQE": {
       "atr_low": 18.24,
       "atr_high": -1.22,
-      "atr_high_wk_chg": -1.22,
-      "atr_low_last_friday": 20.12
+      "atr_low_prev_friday": 20.12,
+      "atr_high_prev_friday": 0.0
     },
     "IWM": {
       "atr_low": 24.39,
       "atr_high": -0.72,
-      "atr_high_wk_chg": -0.58,
-      "atr_low_last_friday": 24.51
+      "atr_low_prev_friday": 24.51,
+      "atr_high_prev_friday": -0.14
     },
     "DIA": {
       "atr_low": 20.38,
       "atr_high": -1.45,
-      "atr_high_wk_chg": -0.22,
-      "atr_low_last_friday": 19.5
+      "atr_low_prev_friday": 19.5,
+      "atr_high_prev_friday": -1.23
     },
     "IJS": {
       "atr_low": 29.44,
       "atr_high": -0.19,
-      "atr_high_wk_chg": -0.19,
-      "atr_low_last_friday": 28.73
+      "atr_low_prev_friday": 28.73,
+      "atr_high_prev_friday": 0.0
     },
     "IJT": {
       "atr_low": 20.2,
       "atr_high": -0.54,
-      "atr_high_wk_chg": -0.54,
-      "atr_low_last_friday": 20.7
+      "atr_low_prev_friday": 20.7,
+      "atr_high_prev_friday": 0.0
     },
     "IJJ": {
       "atr_low": 18.88,
       "atr_high": -1.11,
-      "atr_high_wk_chg": -0.14,
-      "atr_low_last_friday": 18.73
+      "atr_low_prev_friday": 18.73,
+      "atr_high_prev_friday": -0.97
     },
     "IJK": {
       "atr_low": 17.69,
       "atr_high": -1.41,
-      "atr_high_wk_chg": -0.99,
-      "atr_low_last_friday": 19.27
+      "atr_low_prev_friday": 19.27,
+      "atr_high_prev_friday": -0.42
     },
     "IVE": {
       "atr_low": 24.49,
       "atr_high": -0.52,
-      "atr_high_wk_chg": -0.22,
-      "atr_low_last_friday": 24.0
+      "atr_low_prev_friday": 24.0,
+      "atr_high_prev_friday": -0.3
     },
     "IVW": {
       "atr_low": 23.21,
       "atr_high": -0.61,
-      "atr_high_wk_chg": -0.61,
-      "atr_low_last_friday": 24.27
+      "atr_low_prev_friday": 24.27,
+      "atr_high_prev_friday": 0.0
     },
     "RSPT": {
       "atr_low": 25.22,
       "atr_high": -1.28,
-      "atr_high_wk_chg": -1.28,
-      "atr_low_last_friday": 28.68
+      "atr_low_prev_friday": 28.68,
+      "atr_high_prev_friday": 0.0
     },
     "RSPF": {
       "atr_low": 9.12,
       "atr_high": -4.31,
-      "atr_high_wk_chg": 0.22,
-      "atr_low_last_friday": 8.45
+      "atr_low_prev_friday": 8.45,
+      "atr_high_prev_friday": -4.53
     },
     "RSPH": {
       "atr_low": 7.37,
       "atr_high": -6.04,
-      "atr_high_wk_chg": -0.5,
-      "atr_low_last_friday": 7.72
+      "atr_low_prev_friday": 7.72,
+      "atr_high_prev_friday": -5.54
     },
     "RSPD": {
       "atr_low": 8.05,
       "atr_high": -4.43,
-      "atr_high_wk_chg": -1.15,
-      "atr_low_last_friday": 9.24
+      "atr_low_prev_friday": 9.24,
+      "atr_high_prev_friday": -3.28
     },
     "RSPN": {
       "atr_low": 16.75,
       "atr_high": -3.26,
-      "atr_high_wk_chg": -0.59,
-      "atr_low_last_friday": 16.8
+      "atr_low_prev_friday": 16.8,
+      "atr_high_prev_friday": -2.67
     },
     "RSPC": {
       "atr_low": 10.24,
       "atr_high": -7.16,
-      "atr_high_wk_chg": -0.61,
-      "atr_low_last_friday": 10.87
+      "atr_low_prev_friday": 10.87,
+      "atr_high_prev_friday": -6.55
     },
     "RSPS": {
       "atr_low": 4.88,
       "atr_high": -7.88,
-      "atr_high_wk_chg": -0.14,
-      "atr_low_last_friday": 5.13
+      "atr_low_prev_friday": 5.13,
+      "atr_high_prev_friday": -7.74
     },
     "RSPG": {
       "atr_low": 24.16,
       "atr_high": -2.85,
-      "atr_high_wk_chg": 0.46,
-      "atr_low_last_friday": 22.08
+      "atr_low_prev_friday": 22.08,
+      "atr_high_prev_friday": -3.3
     },
     "RSPU": {
       "atr_low": 15.38,
       "atr_high": -2.29,
-      "atr_high_wk_chg": -0.13,
-      "atr_low_last_friday": 14.65
+      "atr_low_prev_friday": 14.65,
+      "atr_high_prev_friday": -2.16
     },
     "RSPR": {
       "atr_low": 7.72,
       "atr_high": -1.4,
-      "atr_high_wk_chg": 0.33,
-      "atr_low_last_friday": 7.19
+      "atr_low_prev_friday": 7.19,
+      "atr_high_prev_friday": -1.72
     },
     "RSPM": {
       "atr_low": 23.75,
       "atr_high": -3.16,
-      "atr_high_wk_chg": -0.41,
-      "atr_low_last_friday": 23.77
+      "atr_low_prev_friday": 23.77,
+      "atr_high_prev_friday": -2.75
     },
     "XLK": {
       "atr_low": 26.25,
       "atr_high": -0.85,
-      "atr_high_wk_chg": -0.85,
-      "atr_low_last_friday": 28.84
+      "atr_low_prev_friday": 28.84,
+      "atr_high_prev_friday": 0.0
     },
     "XLF": {
       "atr_low": 6.23,
       "atr_high": -5.08,
-      "atr_high_wk_chg": 0.29,
-      "atr_low_last_friday": 5.61
+      "atr_low_prev_friday": 5.61,
+      "atr_high_prev_friday": -5.37
     },
     "XLV": {
       "atr_low": 9.42,
       "atr_high": -6.77,
-      "atr_high_wk_chg": -0.33,
-      "atr_low_last_friday": 9.33
+      "atr_low_prev_friday": 9.33,
+      "atr_high_prev_friday": -6.44
     },
     "XLY": {
       "atr_low": 11.01,
       "atr_high": -3.29,
-      "atr_high_wk_chg": -0.89,
-      "atr_low_last_friday": 12.42
+      "atr_low_prev_friday": 12.42,
+      "atr_high_prev_friday": -2.4
     },
     "XLI": {
       "atr_low": 18.64,
       "atr_high": -2.29,
-      "atr_high_wk_chg": -0.5,
-      "atr_low_last_friday": 19.11
+      "atr_low_prev_friday": 19.11,
+      "atr_high_prev_friday": -1.79
     },
     "XLC": {
       "atr_low": 17.8,
       "atr_high": -2.48,
-      "atr_high_wk_chg": 0.02,
-      "atr_low_last_friday": 17.76
+      "atr_low_prev_friday": 17.76,
+      "atr_high_prev_friday": -2.49
     },
     "XLP": {
       "atr_low": 8.21,
       "atr_high": -5.17,
-      "atr_high_wk_chg": -0.08,
-      "atr_low_last_friday": 8.42
+      "atr_low_prev_friday": 8.42,
+      "atr_high_prev_friday": -5.09
     },
     "XLE": {
       "atr_low": 20.4,
       "atr_high": -3.3,
-      "atr_high_wk_chg": 0.43,
-      "atr_low_last_friday": 18.78
+      "atr_low_prev_friday": 18.78,
+      "atr_high_prev_friday": -3.73
     },
     "XLU": {
       "atr_low": 13.45,
       "atr_high": -1.56,
-      "atr_high_wk_chg": -0.01,
-      "atr_low_last_friday": 12.9
+      "atr_low_prev_friday": 12.9,
+      "atr_high_prev_friday": -1.55
     },
     "XLRE": {
       "atr_low": 8.64,
       "atr_high": -1.19,
-      "atr_high_wk_chg": 0.12,
-      "atr_low_last_friday": 8.64
+      "atr_low_prev_friday": 8.64,
+      "atr_high_prev_friday": -1.32
     },
     "XLB": {
       "atr_low": 16.81,
       "atr_high": -2.34,
-      "atr_high_wk_chg": -0.61,
-      "atr_low_last_friday": 17.81
+      "atr_low_prev_friday": 17.81,
+      "atr_high_prev_friday": -1.73
     },
     "XSD": {
       "atr_low": 40.98,
       "atr_high": -2.26,
-      "atr_high_wk_chg": -2.26,
-      "atr_low_last_friday": 56.69
+      "atr_low_prev_friday": 56.69,
+      "atr_high_prev_friday": 0.0
     },
     "GXC": {
       "atr_low": 13.66,
       "atr_high": -7.44,
-      "atr_high_wk_chg": -1.25,
-      "atr_low_last_friday": 15.46
+      "atr_low_prev_friday": 15.46,
+      "atr_high_prev_friday": -6.19
     },
     "XHS": {
       "atr_low": 20.26,
       "atr_high": -1.07,
-      "atr_high_wk_chg": 0.83,
-      "atr_low_last_friday": 17.79
+      "atr_low_prev_friday": 17.79,
+      "atr_high_prev_friday": -1.9
     },
     "XBI": {
       "atr_low": 28.55,
       "atr_high": -2.14,
-      "atr_high_wk_chg": -0.58,
-      "atr_low_last_friday": 30.1
+      "atr_low_prev_friday": 30.1,
+      "atr_high_prev_friday": -1.56
     },
     "XHB": {
       "atr_low": 6.12,
       "atr_high": -4.51,
-      "atr_high_wk_chg": -0.58,
-      "atr_low_last_friday": 6.61
+      "atr_low_prev_friday": 6.61,
+      "atr_high_prev_friday": -3.93
     },
     "KIE": {
       "atr_low": 5.67,
       "atr_high": -2.91,
-      "atr_high_wk_chg": 0.27,
-      "atr_low_last_friday": 5.04
+      "atr_low_prev_friday": 5.04,
+      "atr_high_prev_friday": -3.18
     },
     "XHE": {
       "atr_low": 3.36,
       "atr_high": -6.52,
-      "atr_high_wk_chg": -0.72,
-      "atr_low_last_friday": 4.39
+      "atr_low_prev_friday": 4.39,
+      "atr_high_prev_friday": -5.8
     },
     "KRE": {
       "atr_low": 17.14,
       "atr_high": -1.99,
-      "atr_high_wk_chg": 0.91,
-      "atr_low_last_friday": 15.24
+      "atr_low_prev_friday": 15.24,
+      "atr_high_prev_friday": -2.9
     },
     "XTN": {
       "atr_low": 15.69,
       "atr_high": -3.32,
-      "atr_high_wk_chg": -0.41,
-      "atr_low_last_friday": 14.74
+      "atr_low_prev_friday": 14.74,
+      "atr_high_prev_friday": -2.91
     },
     "XAR": {
       "atr_low": 17.17,
       "atr_high": -4.4,
-      "atr_high_wk_chg": -0.4,
-      "atr_low_last_friday": 17.28
+      "atr_low_prev_friday": 17.28,
+      "atr_high_prev_friday": -4.01
     },
     "KBE": {
       "atr_low": 16.82,
       "atr_high": -1.95,
-      "atr_high_wk_chg": 0.78,
-      "atr_low_last_friday": 15.34
+      "atr_low_prev_friday": 15.34,
+      "atr_high_prev_friday": -2.73
     },
     "XOP": {
       "atr_low": 20.12,
       "atr_high": -3.01,
-      "atr_high_wk_chg": 0.44,
-      "atr_low_last_friday": 17.88
+      "atr_low_prev_friday": 17.88,
+      "atr_high_prev_friday": -3.45
     },
     "XPH": {
       "atr_low": 23.96,
       "atr_high": -1.61,
-      "atr_high_wk_chg": -0.03,
-      "atr_low_last_friday": 24.21
+      "atr_low_prev_friday": 24.21,
+      "atr_high_prev_friday": -1.58
     },
     "XME": {
       "atr_low": 34.28,
       "atr_high": -3.43,
-      "atr_high_wk_chg": -0.17,
-      "atr_low_last_friday": 34.73
+      "atr_low_prev_friday": 34.73,
+      "atr_high_prev_friday": -3.27
     },
     "GNR": {
       "atr_low": 36.8,
       "atr_high": -2.44,
-      "atr_high_wk_chg": -0.55,
-      "atr_low_last_friday": 36.27
+      "atr_low_prev_friday": 36.27,
+      "atr_high_prev_friday": -1.89
     },
     "XRT": {
       "atr_low": 11.73,
       "atr_high": -3.29,
-      "atr_high_wk_chg": -0.68,
-      "atr_low_last_friday": 12.91
+      "atr_low_prev_friday": 12.91,
+      "atr_high_prev_friday": -2.62
     },
     "XSW": {
       "atr_low": 3.6,
       "atr_high": -8.77,
-      "atr_high_wk_chg": -0.7,
-      "atr_low_last_friday": 3.48
+      "atr_low_prev_friday": 3.48,
+      "atr_high_prev_friday": -8.06
     },
     "XES": {
       "atr_low": 53.51,
       "atr_high": 0.0,
-      "atr_high_wk_chg": 0.0,
-      "atr_low_last_friday": 48.91
+      "atr_low_prev_friday": 48.91,
+      "atr_high_prev_friday": 0.0
     },
     "XTL": {
       "atr_low": 47.06,
       "atr_high": -2.09,
-      "atr_high_wk_chg": -1.45,
-      "atr_low_last_friday": 54.27
+      "atr_low_prev_friday": 54.27,
+      "atr_high_prev_friday": -0.64
     },
     "VEGI": {
       "atr_low": 16.56,
       "atr_high": -3.56,
-      "atr_high_wk_chg": 0.2,
-      "atr_low_last_friday": 16.14
+      "atr_low_prev_friday": 16.14,
+      "atr_high_prev_friday": -3.76
     },
     "UNG": {
       "atr_low": 0.24,
       "atr_high": -12.54,
-      "atr_high_wk_chg": -0.05,
-      "atr_low_last_friday": 0.19
+      "atr_low_prev_friday": 0.19,
+      "atr_high_prev_friday": -12.5
     },
     "IHF": {
       "atr_low": 10.63,
       "atr_high": -3.91,
-      "atr_high_wk_chg": 1.05,
-      "atr_low_last_friday": 8.87
+      "atr_low_prev_friday": 8.87,
+      "atr_high_prev_friday": -4.96
     },
     "FXI": {
       "atr_low": 6.97,
       "atr_high": -8.55,
-      "atr_high_wk_chg": -1.21,
-      "atr_low_last_friday": 8.06
+      "atr_low_prev_friday": 8.06,
+      "atr_high_prev_friday": -7.33
     },
     "GUNR": {
       "atr_low": 38.04,
       "atr_high": -2.53,
-      "atr_high_wk_chg": -0.64,
-      "atr_low_last_friday": 37.92
+      "atr_low_prev_friday": 37.92,
+      "atr_high_prev_friday": -1.89
     },
     "MOO": {
       "atr_low": 17.61,
       "atr_high": -3.69,
-      "atr_high_wk_chg": -0.15,
-      "atr_low_last_friday": 18.1
+      "atr_low_prev_friday": 18.1,
+      "atr_high_prev_friday": -3.54
     },
     "IBB": {
       "atr_low": 22.53,
       "atr_high": -2.78,
-      "atr_high_wk_chg": -0.55,
-      "atr_low_last_friday": 23.6
+      "atr_low_prev_friday": 23.6,
+      "atr_high_prev_friday": -2.24
     },
     "KRBN": {
       "atr_low": 11.13,
       "atr_high": -8.53,
-      "atr_high_wk_chg": 0.48,
-      "atr_low_last_friday": 10.56
+      "atr_low_prev_friday": 10.56,
+      "atr_high_prev_friday": -9.01
     },
     "LIT": {
       "atr_low": 56.24,
       "atr_high": -0.58,
-      "atr_high_wk_chg": -0.11,
-      "atr_low_last_friday": 54.73
+      "atr_low_prev_friday": 54.73,
+      "atr_high_prev_friday": -0.47
     },
     "IYK": {
       "atr_low": 6.9,
       "atr_high": -5.68,
-      "atr_high_wk_chg": 0.65,
-      "atr_low_last_friday": 6.48
+      "atr_low_prev_friday": 6.48,
+      "atr_high_prev_friday": -6.33
     },
     "PPH": {
       "atr_low": 15.44,
       "atr_high": -6.63,
-      "atr_high_wk_chg": -0.47,
-      "atr_low_last_friday": 15.34
+      "atr_low_prev_friday": 15.34,
+      "atr_high_prev_friday": -6.17
     },
     "IYZ": {
       "atr_low": 28.77,
       "atr_high": -2.82,
-      "atr_high_wk_chg": -1.37,
-      "atr_low_last_friday": 33.83
+      "atr_low_prev_friday": 33.83,
+      "atr_high_prev_friday": -1.45
     },
     "PBE": {
       "atr_low": 26.76,
       "atr_high": -5.41,
-      "atr_high_wk_chg": -0.43,
-      "atr_low_last_friday": 26.06
+      "atr_low_prev_friday": 26.06,
+      "atr_high_prev_friday": -4.98
     },
     "COPX": {
       "atr_low": 29.82,
       "atr_high": -4.64,
-      "atr_high_wk_chg": -0.95,
-      "atr_low_last_friday": 32.89
+      "atr_low_prev_friday": 32.89,
+      "atr_high_prev_friday": -3.69
     },
     "PBJ": {
       "atr_low": 15.35,
       "atr_high": -2.08,
-      "atr_high_wk_chg": -0.25,
-      "atr_low_last_friday": 15.13
+      "atr_low_prev_friday": 15.13,
+      "atr_high_prev_friday": -1.83
     },
     "IDGT": {
       "atr_low": 30.15,
       "atr_high": -1.61,
-      "atr_high_wk_chg": -1.53,
-      "atr_low_last_friday": 36.13
+      "atr_low_prev_friday": 36.13,
+      "atr_high_prev_friday": -0.08
     },
     "FTXG": {
       "atr_low": 8.53,
       "atr_high": -6.23,
-      "atr_high_wk_chg": 0.61,
-      "atr_low_last_friday": 7.82
+      "atr_low_prev_friday": 7.82,
+      "atr_high_prev_friday": -6.85
     },
     "EVX": {
       "atr_low": 11.57,
       "atr_high": -5.28,
-      "atr_high_wk_chg": -0.46,
-      "atr_low_last_friday": 12.23
+      "atr_low_prev_friday": 12.23,
+      "atr_high_prev_friday": -4.82
     },
     "BOAT": {
       "atr_low": 34.09,
       "atr_high": -2.18,
-      "atr_high_wk_chg": 0.18,
-      "atr_low_last_friday": 33.96
+      "atr_low_prev_friday": 33.96,
+      "atr_high_prev_friday": -2.36
     },
     "ICLN": {
       "atr_low": 29.58,
       "atr_high": -0.69,
-      "atr_high_wk_chg": -0.39,
-      "atr_low_last_friday": 29.7
+      "atr_low_prev_friday": 29.7,
+      "atr_high_prev_friday": -0.3
     },
     "ERTH": {
       "atr_low": 23.89,
       "atr_high": -1.29,
-      "atr_high_wk_chg": -0.62,
-      "atr_low_last_friday": 24.88
+      "atr_low_prev_friday": 24.88,
+      "atr_high_prev_friday": -0.67
     },
     "BJK": {
       "atr_low": 4.47,
       "atr_high": -12.46,
-      "atr_high_wk_chg": -0.59,
-      "atr_low_last_friday": 4.88
+      "atr_low_prev_friday": 4.88,
+      "atr_high_prev_friday": -11.87
     },
     "FRI": {
       "atr_low": 16.15,
       "atr_high": -0.96,
-      "atr_high_wk_chg": 0.46,
-      "atr_low_last_friday": 15.36
+      "atr_low_prev_friday": 15.36,
+      "atr_high_prev_friday": -1.42
     },
     "CHIQ": {
       "atr_low": 1.07,
       "atr_high": -11.27,
-      "atr_high_wk_chg": -1.11,
-      "atr_low_last_friday": 2.06
+      "atr_low_prev_friday": 2.06,
+      "atr_high_prev_friday": -10.16
     },
     "IHI": {
       "atr_low": 0.0,
       "atr_high": -9.51,
-      "atr_high_wk_chg": -0.48,
-      "atr_low_last_friday": 0.5
+      "atr_low_prev_friday": 0.5,
+      "atr_high_prev_friday": -9.02
     },
     "FDRV": {
       "atr_low": 22.46,
       "atr_high": -1.45,
-      "atr_high_wk_chg": -1.45,
-      "atr_low_last_friday": 26.05
+      "atr_low_prev_friday": 26.05,
+      "atr_high_prev_friday": 0.0
     },
     "GDX": {
       "atr_low": 22.27,
       "atr_high": -5.48,
-      "atr_high_wk_chg": -0.96,
-      "atr_low_last_friday": 26.45
+      "atr_low_prev_friday": 26.45,
+      "atr_high_prev_friday": -4.52
     },
     "KURE": {
       "atr_low": 8.98,
       "atr_high": -8.75,
-      "atr_high_wk_chg": 0.11,
-      "atr_low_last_friday": 8.61
+      "atr_low_prev_friday": 8.61,
+      "atr_high_prev_friday": -8.85
     },
     "WOOD": {
       "atr_low": 2.68,
       "atr_high": -10.44,
-      "atr_high_wk_chg": -0.81,
-      "atr_low_last_friday": 2.67
+      "atr_low_prev_friday": 2.67,
+      "atr_high_prev_friday": -9.63
     },
     "PHO": {
       "atr_low": 4.76,
       "atr_high": -5.34,
-      "atr_high_wk_chg": -0.85,
-      "atr_low_last_friday": 5.61
+      "atr_low_prev_friday": 5.61,
+      "atr_high_prev_friday": -4.49
     },
     "SCHH": {
       "atr_low": 11.5,
       "atr_high": -0.85,
-      "atr_high_wk_chg": 0.32,
-      "atr_low_last_friday": 11.18
+      "atr_low_prev_friday": 11.18,
+      "atr_high_prev_friday": -1.18
     },
     "GRID": {
       "atr_low": 31.6,
       "atr_high": -0.59,
-      "atr_high_wk_chg": -0.59,
-      "atr_low_last_friday": 33.35
+      "atr_low_prev_friday": 33.35,
+      "atr_high_prev_friday": 0.0
     },
     "IGF": {
       "atr_low": 22.78,
       "atr_high": -2.53,
-      "atr_high_wk_chg": -0.35,
-      "atr_low_last_friday": 22.7
+      "atr_low_prev_friday": 22.7,
+      "atr_high_prev_friday": -2.18
     },
     "SIL": {
       "atr_low": 27.84,
       "atr_high": -5.15,
-      "atr_high_wk_chg": -0.83,
-      "atr_low_last_friday": 32.31
+      "atr_low_prev_friday": 32.31,
+      "atr_high_prev_friday": -4.33
     },
     "TAN": {
       "atr_low": 37.03,
       "atr_high": -1.73,
-      "atr_high_wk_chg": -0.43,
-      "atr_low_last_friday": 37.45
+      "atr_low_prev_friday": 37.45,
+      "atr_high_prev_friday": -1.3
     },
     "PEJ": {
       "atr_low": 12.86,
       "atr_high": -2.7,
-      "atr_high_wk_chg": -0.68,
-      "atr_low_last_friday": 12.75
+      "atr_low_prev_friday": 12.75,
+      "atr_high_prev_friday": -2.03
     },
     "IAI": {
       "atr_low": 16.09,
       "atr_high": -3.59,
-      "atr_high_wk_chg": -0.05,
-      "atr_low_last_friday": 14.98
+      "atr_low_prev_friday": 14.98,
+      "atr_high_prev_friday": -3.54
     },
     "ROBO": {
       "atr_low": 25.6,
       "atr_high": -0.83,
-      "atr_high_wk_chg": -0.83,
-      "atr_low_last_friday": 27.5
+      "atr_low_prev_friday": 27.5,
+      "atr_high_prev_friday": 0.0
     },
     "ITA": {
       "atr_low": 15.67,
       "atr_high": -5.41,
-      "atr_high_wk_chg": -0.31,
-      "atr_low_last_friday": 15.47
+      "atr_low_prev_friday": 15.47,
+      "atr_high_prev_friday": -5.1
     },
     "MTUM": {
       "atr_low": 18.4,
       "atr_high": -0.9,
-      "atr_high_wk_chg": -0.9,
-      "atr_low_last_friday": 21.31
+      "atr_low_prev_friday": 21.31,
+      "atr_high_prev_friday": 0.0
     },
     "JETS": {
       "atr_low": 8.08,
       "atr_high": -5.19,
-      "atr_high_wk_chg": -0.8,
-      "atr_low_last_friday": 9.1
+      "atr_low_prev_friday": 9.1,
+      "atr_high_prev_friday": -4.39
     },
     "GLD": {
       "atr_low": 20.39,
       "atr_high": -6.93,
-      "atr_high_wk_chg": -0.99,
-      "atr_low_last_friday": 22.44
+      "atr_low_prev_friday": 22.44,
+      "atr_high_prev_friday": -5.93
     },
     "IYT": {
       "atr_low": 18.29,
       "atr_high": -0.93,
-      "atr_high_wk_chg": -0.31,
-      "atr_low_last_friday": 17.97
+      "atr_low_prev_friday": 17.97,
+      "atr_high_prev_friday": -0.62
     },
     "IYG": {
       "atr_low": 10.35,
       "atr_high": -5.64,
-      "atr_high_wk_chg": 0.21,
-      "atr_low_last_friday": 9.24
+      "atr_low_prev_friday": 9.24,
+      "atr_high_prev_friday": -5.84
     },
     "XLSR": {
       "atr_low": 25.65,
       "atr_high": -0.9,
-      "atr_high_wk_chg": -0.31,
-      "atr_low_last_friday": 25.47
+      "atr_low_prev_friday": 25.47,
+      "atr_high_prev_friday": -0.58
     },
     "KWEB": {
       "atr_low": 0.53,
       "atr_high": -13.54,
-      "atr_high_wk_chg": -1.04,
-      "atr_low_last_friday": 1.64
+      "atr_low_prev_friday": 1.64,
+      "atr_high_prev_friday": -12.5
     },
     "ENFR": {
       "atr_low": 18.59,
       "atr_high": -2.42,
-      "atr_high_wk_chg": 0.88,
-      "atr_low_last_friday": 17.01
+      "atr_low_prev_friday": 17.01,
+      "atr_high_prev_friday": -3.3
     },
     "VPN": {
       "atr_low": 38.7,
       "atr_high": -1.35,
-      "atr_high_wk_chg": -1.35,
-      "atr_low_last_friday": 44.96
+      "atr_low_prev_friday": 44.96,
+      "atr_high_prev_friday": 0.0
     },
     "MJ": {
       "atr_low": 11.24,
       "atr_high": -5.11,
-      "atr_high_wk_chg": -0.1,
-      "atr_low_last_friday": 10.14
+      "atr_low_prev_friday": 10.14,
+      "atr_high_prev_friday": -5.01
     },
     "ARKX": {
       "atr_low": 28.8,
       "atr_high": -2.67,
-      "atr_high_wk_chg": -0.34,
-      "atr_low_last_friday": 29.61
+      "atr_low_prev_friday": 29.61,
+      "atr_high_prev_friday": -2.33
     },
     "BETZ": {
       "atr_low": 4.78,
       "atr_high": -10.29,
-      "atr_high_wk_chg": -0.05,
-      "atr_low_last_friday": 6.08
+      "atr_low_prev_friday": 6.08,
+      "atr_high_prev_friday": -10.24
     },
     "AMLP": {
       "atr_low": 17.1,
       "atr_high": -1.65,
-      "atr_high_wk_chg": 0.92,
-      "atr_low_last_friday": 15.24
+      "atr_low_prev_friday": 15.24,
+      "atr_high_prev_friday": -2.57
     },
     "IAK": {
       "atr_low": 6.27,
       "atr_high": -1.4,
-      "atr_high_wk_chg": 0.79,
-      "atr_low_last_friday": 5.35
+      "atr_low_prev_friday": 5.35,
+      "atr_high_prev_friday": -2.18
     },
     "USO": {
       "atr_low": 24.32,
       "atr_high": 0.0,
-      "atr_high_wk_chg": 0.84,
-      "atr_low_last_friday": 19.94
+      "atr_low_prev_friday": 19.94,
+      "atr_high_prev_friday": -0.84
     },
     "SLX": {
       "atr_low": 42.07,
       "atr_high": -0.2,
-      "atr_high_wk_chg": 0.35,
-      "atr_low_last_friday": 38.07
+      "atr_low_prev_friday": 38.07,
+      "atr_high_prev_friday": -0.54
     },
     "FCG": {
       "atr_low": 18.94,
       "atr_high": -2.59,
-      "atr_high_wk_chg": 0.6,
-      "atr_low_last_friday": 16.69
+      "atr_low_prev_friday": 16.69,
+      "atr_high_prev_friday": -3.18
     },
     "ARKG": {
       "atr_low": 12.08,
       "atr_high": -3.62,
-      "atr_high_wk_chg": -0.1,
-      "atr_low_last_friday": 11.59
+      "atr_low_prev_friday": 11.59,
+      "atr_high_prev_friday": -3.52
     },
     "IYC": {
       "atr_low": 10.19,
       "atr_high": -3.54,
-      "atr_high_wk_chg": -1.16,
-      "atr_low_last_friday": 11.88
+      "atr_low_prev_friday": 11.88,
+      "atr_high_prev_friday": -2.37
     },
     "OIH": {
       "atr_low": 46.44,
       "atr_high": 0.0,
-      "atr_high_wk_chg": 0.0,
-      "atr_low_last_friday": 43.26
+      "atr_low_prev_friday": 43.26,
+      "atr_high_prev_friday": 0.0
     },
     "BOTZ": {
       "atr_low": 14.29,
       "atr_high": -2.18,
-      "atr_high_wk_chg": 0.45,
-      "atr_low_last_friday": 15.28
+      "atr_low_prev_friday": 15.28,
+      "atr_high_prev_friday": -2.64
     },
     "CIBR": {
       "atr_low": 4.12,
       "atr_high": -5.37,
-      "atr_high_wk_chg": -0.29,
-      "atr_low_last_friday": 3.98
+      "atr_low_prev_friday": 3.98,
+      "atr_high_prev_friday": -5.08
     },
     "WCLD": {
       "atr_low": 3.25,
       "atr_high": -6.51,
-      "atr_high_wk_chg": -0.2,
-      "atr_low_last_friday": 3.01
+      "atr_low_prev_friday": 3.01,
+      "atr_high_prev_friday": -6.31
     },
     "CLOU": {
       "atr_low": 4.02,
       "atr_high": -5.91,
-      "atr_high_wk_chg": -0.26,
-      "atr_low_last_friday": 3.69
+      "atr_low_prev_friday": 3.69,
+      "atr_high_prev_friday": -5.66
     },
     "ARKQ": {
       "atr_low": 30.33,
       "atr_high": -1.97,
-      "atr_high_wk_chg": -0.6,
-      "atr_low_last_friday": 33.23
+      "atr_low_prev_friday": 33.23,
+      "atr_high_prev_friday": -1.37
     },
     "ESPO": {
       "atr_low": 3.08,
       "atr_high": -13.87,
-      "atr_high_wk_chg": -1.23,
-      "atr_low_last_friday": 3.2
+      "atr_low_prev_friday": 3.2,
+      "atr_high_prev_friday": -12.63
     },
     "EWZ": {
       "atr_low": 28.97,
       "atr_high": -2.42,
-      "atr_high_wk_chg": -0.38,
-      "atr_low_last_friday": 28.31
+      "atr_low_prev_friday": 28.31,
+      "atr_high_prev_friday": -2.04
     },
     "EWY": {
       "atr_low": 47.72,
       "atr_high": -0.39,
-      "atr_high_wk_chg": -0.2,
-      "atr_low_last_friday": 45.42
+      "atr_low_prev_friday": 45.42,
+      "atr_high_prev_friday": -0.19
     },
     "ARGT": {
       "atr_low": 16.46,
       "atr_high": -5.19,
-      "atr_high_wk_chg": -0.42,
-      "atr_low_last_friday": 16.04
+      "atr_low_prev_friday": 16.04,
+      "atr_high_prev_friday": -4.77
     },
     "SOCL": {
       "atr_low": 4.92,
       "atr_high": -12.6,
-      "atr_high_wk_chg": -0.48,
-      "atr_low_last_friday": 5.66
+      "atr_low_prev_friday": 5.66,
+      "atr_high_prev_friday": -12.12
     },
     "FDN": {
       "atr_low": 7.93,
       "atr_high": -5.01,
-      "atr_high_wk_chg": -0.78,
-      "atr_low_last_friday": 8.23
+      "atr_low_prev_friday": 8.23,
+      "atr_high_prev_friday": -4.23
     },
     "MSOS": {
       "atr_low": 16.84,
       "atr_high": -3.06,
-      "atr_high_wk_chg": 0.31,
-      "atr_low_last_friday": 14.27
+      "atr_low_prev_friday": 14.27,
+      "atr_high_prev_friday": -3.37
     },
     "ARKK": {
       "atr_low": 16.8,
       "atr_high": -5.67,
-      "atr_high_wk_chg": -0.59,
-      "atr_low_last_friday": 16.68
+      "atr_low_prev_friday": 16.68,
+      "atr_high_prev_friday": -5.08
     },
     "IGV": {
       "atr_low": 4.38,
       "atr_high": -8.8,
-      "atr_high_wk_chg": -0.51,
-      "atr_low_last_friday": 4.23
+      "atr_low_prev_friday": 4.23,
+      "atr_high_prev_friday": -8.29
     },
     "ITB": {
       "atr_low": 4.64,
       "atr_high": -6.11,
-      "atr_high_wk_chg": -0.53,
-      "atr_low_last_friday": 5.32
+      "atr_low_prev_friday": 5.32,
+      "atr_high_prev_friday": -5.58
     },
     "BLOK": {
       "atr_low": 15.11,
       "atr_high": -6.45,
-      "atr_high_wk_chg": -0.61,
-      "atr_low_last_friday": 16.71
+      "atr_low_prev_friday": 16.71,
+      "atr_high_prev_friday": -5.83
     },
     "URA": {
       "atr_low": 28.36,
       "atr_high": -2.73,
-      "atr_high_wk_chg": -0.36,
-      "atr_low_last_friday": 30.94
+      "atr_low_prev_friday": 30.94,
+      "atr_high_prev_friday": -2.37
     },
     "ARKF": {
       "atr_low": 5.48,
       "atr_high": -9.15,
-      "atr_high_wk_chg": -0.83,
-      "atr_low_last_friday": 6.36
+      "atr_low_prev_friday": 6.36,
+      "atr_high_prev_friday": -8.32
     },
     "SMH": {
       "atr_low": 48.57,
       "atr_high": -1.09,
-      "atr_high_wk_chg": -1.09,
-      "atr_low_last_friday": 56.18
+      "atr_low_prev_friday": 56.18,
+      "atr_high_prev_friday": 0.0
     },
     "ARKW": {
       "atr_low": 12.34,
       "atr_high": -8.31,
-      "atr_high_wk_chg": -0.86,
-      "atr_low_last_friday": 13.93
+      "atr_low_prev_friday": 13.93,
+      "atr_high_prev_friday": -7.45
     },
     "URNM": {
       "atr_low": 20.38,
       "atr_high": -4.53,
-      "atr_high_wk_chg": -0.28,
-      "atr_low_last_friday": 21.84
+      "atr_low_prev_friday": 21.84,
+      "atr_high_prev_friday": -4.25
     },
     "WGMI": {
       "atr_low": 40.42,
       "atr_high": -4.93,
-      "atr_high_wk_chg": -0.43,
-      "atr_low_last_friday": 47.88
+      "atr_low_prev_friday": 47.88,
+      "atr_high_prev_friday": -4.5
     },
     "GBTC": {
       "atr_low": 6.39,
       "atr_high": -13.02,
-      "atr_high_wk_chg": -0.82,
-      "atr_low_last_friday": 6.8
+      "atr_low_prev_friday": 6.8,
+      "atr_high_prev_friday": -12.2
     },
     "BITW": {
       "atr_low": 6.74,
       "atr_high": -14.25,
-      "atr_high_wk_chg": -1.04,
-      "atr_low_last_friday": 6.99
+      "atr_low_prev_friday": 6.99,
+      "atr_high_prev_friday": -13.21
     },
     "UFO": {
       "atr_low": 34.41,
       "atr_high": -2.36,
-      "atr_high_wk_chg": -0.58,
-      "atr_low_last_friday": 35.4
+      "atr_low_prev_friday": 35.4,
+      "atr_high_prev_friday": -1.78
     }
   }
 }
