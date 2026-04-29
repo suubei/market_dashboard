@@ -314,6 +314,18 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
     : displayOrder;
 
   const allChg      = order.map(({ ticker }) => changes[ticker]).filter(v => v != null);
+  const allAtrLowChg  = order.map(({ ticker }) => {
+    const m = atrMetrics?.[ticker]; const v = m?.atr_low ?? null; const p = m?.atr_low_prev_friday ?? null;
+    return (v != null && p != null) ? v - p : null;
+  }).filter(v => v != null);
+  const allAtrHighChg = order.map(({ ticker }) => {
+    const m = atrMetrics?.[ticker]; const v = m?.atr_high ?? null; const p = m?.atr_high_prev_friday ?? null;
+    return (v != null && p != null) ? v - p : null;
+  }).filter(v => v != null);
+  const maxAbsAtrLowChg  = Math.max(...allAtrLowChg.map(Math.abs),  0.01);
+  const maxAbsAtrHighChg = Math.max(...allAtrHighChg.map(Math.abs), 0.01);
+  const atrLowChgMode  = barMode(allAtrLowChg);
+  const atrHighChgMode = barMode(allAtrHighChg);
   const allWeekly   = order.map(({ ticker }) => weekly[ticker]).filter(v => v != null);
   const allIntra    = order.map(({ ticker }) => intraday[ticker]).filter(v => v != null);
   const maxAbsChg   = Math.max(...allChg.map(Math.abs),    0.01);
@@ -354,6 +366,8 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
     const atrLowPrevFri   = m?.atr_low_prev_friday ?? null;
     const atrHigh    = m?.atr_high        ?? null;
     const atrHighPrevFri    = m?.atr_high_prev_friday ?? null;
+    const atrLowWkChg  = (atrLow != null && atrLowPrevFri != null) ? atrLow - atrLowPrevFri : null;
+    const atrHighWkChg = (atrHigh != null && atrHighPrevFri != null) ? atrHigh - atrHighPrevFri : null;
     const atrLowHtml = atrLow != null
       ? `<span class="num-value">${atrLow.toFixed(1)}</span>`
       : '<span class="num-value">—</span>';
@@ -376,9 +390,9 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${chgText}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(wkly, weeklyMode, maxAbsWeekly)}<span class="chg-text">${wklyText}</span></div></td>
       <td class="atr-cell">${atrLowPrevFriHtml}</td>
-      <td class="atr-cell">${atrLowHtml}</td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrLowWkChg, atrLowChgMode, maxAbsAtrLowChg)}<span class="chg-text">${atrLowHtml}</span></div></td>
       <td class="atr-cell">${atrHighPrevFriHtml}</td>
-      <td class="atr-cell">${atrHighHtml}</td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrHighWkChg, atrHighChgMode, maxAbsAtrHighChg)}<span class="chg-text">${atrHighHtml}</span></div></td>
     </tr>`;
   }).join('');
 }
