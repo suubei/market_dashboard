@@ -210,8 +210,8 @@ function buildTable(section) {
       <col class="col-rs"><col class="col-sts">
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly">
-      <col class="col-atr-low"><col class="col-atr-high">
-      <col class="col-atr-wkchg"><col class="col-atr-hchg">
+      <col class="col-atr-low"><col class="col-atr-wkchg">
+      <col class="col-atr-high"><col class="col-atr-hchg">
     </colgroup>
     <thead><tr>
       <th class="col-market">${section.label}</th>
@@ -222,8 +222,8 @@ function buildTable(section) {
       ${sortTh('chg', 'Daily %')}
       ${sortTh('weekly', 'Weekly %')}
       ${sortTh('atrLow', '52WL Dist (ATR%)')}
-      ${sortTh('atrHigh', '52WH Dist (ATR%)')}
       ${sortTh('atrLowPrevFri', '52WL Dist (Prev Fri)')}
+      ${sortTh('atrHigh', '52WH Dist (ATR%)')}
       ${sortTh('atrHighPrevFri', '52WH Dist (Prev Fri)')}
     </tr></thead>
     <tbody id="${id}"></tbody>
@@ -406,8 +406,8 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${chgText}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(wkly, weeklyMode, maxAbsWeekly)}<span class="chg-text">${wklyText}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrLowWkChg, atrLowChgMode, maxAbsAtrLowChg)}<span class="chg-text">${atrLowHtml}</span></div></td>
-      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrHighWkChg, atrHighChgMode, maxAbsAtrHighChg)}<span class="chg-text">${atrHighHtml}</span></div></td>
       <td class="atr-cell">${atrLowPrevFriHtml}</td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrHighWkChg, atrHighChgMode, maxAbsAtrHighChg)}<span class="chg-text">${atrHighHtml}</span></div></td>
       <td class="atr-cell">${atrHighPrevFriHtml}</td>
     </tr>`;
   }).join('');
