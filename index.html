@@ -98,6 +98,11 @@
     .sort-arrow { margin-left: 3px; font-size: 0.65rem; opacity: 0.5; }
     .sort-active .sort-arrow { opacity: 1; }
 
+    /* Avoid double border between stacked tables (tbody bottom + next thead top). */
+    #dashboard .ticker-table + .ticker-table thead th {
+      border-top: none;
+    }
+
     .ticker-table tbody .ticker-row:not(:first-of-type) td {
       border-top: 1px solid var(--border);
     }
