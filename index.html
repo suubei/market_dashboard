@@ -57,7 +57,8 @@
 
     #dashboard { max-width: 1445px; margin: 0 auto; display: none; }
 
-    .ticker-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    /* separate borders: avoids 1px seam above sticky thead with border-collapse: collapse */
+    .ticker-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 
     .col-market    { width: 210px; }
     .col-index     { width: 70px; }
@@ -97,12 +98,17 @@
     .sort-arrow { margin-left: 3px; font-size: 0.65rem; opacity: 0.5; }
     .sort-active .sort-arrow { opacity: 1; }
 
-    .ticker-row {
-      height: 32px;
+    .ticker-table tbody .ticker-row:not(:first-of-type) td {
       border-top: 1px solid var(--border);
     }
+    .ticker-table tbody .ticker-row:last-child td {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .ticker-row {
+      height: 32px;
+    }
     .ticker-row:hover { background: #f0f3f6; }
-    .ticker-row:last-child { border-bottom: 1px solid var(--border); }
 
     .ticker-row td {
       padding: 0;
