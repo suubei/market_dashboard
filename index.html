@@ -274,13 +274,18 @@ function buildChgBarSVG(val, mode, maxAbs) {
   const fill  = isPos ? 'rgba(26,127,55,0.18)' : 'rgba(207,34,46,0.15)';
   let x, w, centerLine = '';
 
+  // allPos / allNeg: inset in viewBox so tinted fill does not run edge-to-edge (Weekly often lands here).
+  const inset = 8;
+  const inner = 100 - 2 * inset;
+
   if (mode === 'butterfly') {
     w = frac * 50; x = isPos ? 50 : 50 - w;
     centerLine = `<line x1="50" y1="0" x2="50" y2="1" stroke="#d0d7de" stroke-width="0.8"/>`;
   } else if (mode === 'allPos') {
-    x = 0; w = frac * 100;
+    x = inset; w = frac * inner;
   } else {
-    w = frac * 100; x = 100 - w;
+    w = frac * inner;
+    x = 100 - inset - w;
   }
 
   return `<svg viewBox="0 0 100 1" preserveAspectRatio="none">
