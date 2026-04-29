@@ -57,7 +57,6 @@
 
     #dashboard { max-width: 1445px; margin: 0 auto; display: none; }
 
-    /* separate borders (sticky thead); keep border-spacing 0 so thead has no column gutters */
     .ticker-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 
     .col-market    { width: 210px; }
@@ -98,10 +97,7 @@
     .sort-arrow { margin-left: 3px; font-size: 0.65rem; opacity: 0.5; }
     .sort-active .sort-arrow { opacity: 1; }
 
-    /* Avoid double border between stacked tables (tbody bottom + next thead top). */
-    #dashboard .ticker-table + .ticker-table thead th {
-      border-top: none;
-    }
+    #dashboard .ticker-table + .ticker-table thead th { border-top: none; }
 
     .ticker-table tbody .ticker-row:not(:first-of-type) td {
       border-top: 1px solid var(--border);
@@ -137,14 +133,20 @@
       padding-left: 6px;
       padding-right: 10px;
     }
-    .num-value { font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
+    .num-value,
+    .chg-text {
+      font-size: 0.88rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .chg-text { position: relative; }
     .atr-new-high { color: var(--pos); }
-    .atr-neg      { color: var(--neg); }
+    .atr-neg { color: var(--neg); }
 
-    .chg-cell { padding: 0 !important; }
-    .chg-wrap { position: relative; padding: 0 10px; text-align: right; }
+    .ticker-row td.chg-cell { padding: 0 10px; }
+    .chg-wrap { position: relative; text-align: right; }
     .chg-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .chg-text { position: relative; font-size: 0.88rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); }
 
     footer {
       max-width: 1445px;
@@ -180,7 +182,6 @@
 </footer>
 
 <script>
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function showStatus(msg, isError = false) {
   const el = document.getElementById('status');
   el.textContent = msg;
@@ -197,14 +198,36 @@ function toBeiJing(isoStr) {
   });
 }
 
-// PERCENTRANK: count of values strictly below x / (n - 1)  — matches Excel
+async function fetchJson(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url} HTTP ${r.status}`);
+  return r.json();
+}
+
+function pctText(v) {
+  return v != null ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : '—';
+}
+
+function numCell(v, dec, extraClass = '') {
+  if (v == null) return '<span class="num-value">—</span>';
+  return `<span class="num-value${extraClass}">${v.toFixed(dec)}</span>`;
+}
+
+function atrDelta(m, key, prevKey) {
+  const v = m?.[key] ?? null, p = m?.[prevKey] ?? null;
+  return v != null && p != null ? v - p : null;
+}
+
 function percentRank(values, val) {
   const valid = values.filter(v => v !== null && !isNaN(v));
   if (valid.length <= 1) return null;
   return valid.filter(v => v < val).length / (valid.length - 1);
 }
 
-// ── Table builder ─────────────────────────────────────────────────────────────
+const N_BARS = 25;
+const VB_W = 200, VB_H = 48;
+const ZERO_Y = VB_H / 2, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS, BAR_W = SLOT_W - 2;
+
 function buildTable(section) {
   const id = `${section.id}-body`;
   const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', atrLow: 'col-atr-low', atrLowPrevFri: 'col-atr-wkchg', atrHigh: 'col-atr-high', atrHighPrevFri: 'col-atr-hchg' };
@@ -236,14 +259,6 @@ function buildTable(section) {
   </table>`;
 }
 
-// ── SVG: VARS histogram ───────────────────────────────────────────────────────
-const VB_W   = 200, VB_H = 48;
-const ZERO_Y = VB_H / 2;
-const MAX_BAR = ZERO_Y - 3;
-const N_BARS  = 25;
-const SLOT_W  = VB_W / N_BARS;
-const BAR_W   = SLOT_W - 2;
-
 function buildHistogramSVG(values, isSpy) {
   const maxAbs = isSpy ? 1 : Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
   const maxVal = isSpy ? 0 : Math.max(...values.filter(v => v !== null));
@@ -266,67 +281,63 @@ function buildHistogramSVG(values, isSpy) {
     ${bars}</svg>`;
 }
 
-// ── SVG: daily change butterfly bar ──────────────────────────────────────────
 function buildChgBarSVG(val, mode, maxAbs) {
   if (val == null) return '';
   const isPos = val >= 0;
-  const frac  = Math.abs(val) / maxAbs;
-  const fill  = isPos ? 'rgba(26,127,55,0.18)' : 'rgba(207,34,46,0.15)';
-  let x, w, centerLine = '';
-
-  // allPos / allNeg: inset in viewBox so tinted fill does not run edge-to-edge (Weekly often lands here).
-  const inset = 8;
-  const inner = 100 - 2 * inset;
-
+  const frac = Math.abs(val) / maxAbs;
+  const fill = isPos ? 'rgba(26,127,55,0.18)' : 'rgba(207,34,46,0.15)';
+  const inset = 8, inner = 100 - 2 * inset;
+  let x, w;
+  let line = '';
   if (mode === 'butterfly') {
-    w = frac * 50; x = isPos ? 50 : 50 - w;
-    centerLine = `<line x1="50" y1="0" x2="50" y2="1" stroke="#d0d7de" stroke-width="0.8"/>`;
+    w = frac * 50;
+    x = isPos ? 50 : 50 - w;
+    line = '<line x1="50" y1="0" x2="50" y2="1" stroke="#d0d7de" stroke-width="0.8"/>';
   } else if (mode === 'allPos') {
-    x = inset; w = frac * inner;
+    x = inset;
+    w = frac * inner;
   } else {
     w = frac * inner;
     x = 100 - inset - w;
   }
-
   return `<svg viewBox="0 0 100 1" preserveAspectRatio="none">
     <rect x="${x.toFixed(2)}" y="0" width="${w.toFixed(2)}" height="1" fill="${fill}"/>
-    ${centerLine}</svg>`;
+    ${line}</svg>`;
 }
 
-// ── Sort state ────────────────────────────────────────────────────────────────
-const sortState = {};   // { tbodyId: { col, dir } }  dir: -1=desc, 1=asc
+const sortState = {};
 let _series = {}, _changes = {}, _weekly = {}, _intraday = {}, _atrMetrics = {};
 
 function getSortValue(ticker, col, series, changes, weekly, intraday, atrMetrics) {
-  if (col === 'sts') {
-    const vals = (series[ticker] ?? []).slice(-N_BARS);
-    if (!vals.length) return -Infinity;
-    const pr = percentRank(vals, vals[vals.length - 1]);
-    return pr ?? -Infinity;
+  switch (col) {
+    case 'sts': {
+      const vals = (series[ticker] ?? []).slice(-N_BARS);
+      if (!vals.length) return -Infinity;
+      return percentRank(vals, vals[vals.length - 1]) ?? -Infinity;
+    }
+    case 'intraday': return intraday[ticker] ?? -Infinity;
+    case 'chg': return changes[ticker] ?? -Infinity;
+    case 'weekly': return weekly[ticker] ?? -Infinity;
+    case 'atrLow': return atrMetrics?.[ticker]?.atr_low ?? -Infinity;
+    case 'atrLowPrevFri': return atrMetrics?.[ticker]?.atr_low_prev_friday ?? -Infinity;
+    case 'atrHigh': return atrMetrics?.[ticker]?.atr_high ?? -Infinity;
+    case 'atrHighPrevFri': return atrMetrics?.[ticker]?.atr_high_prev_friday ?? -Infinity;
+    default: return 0;
   }
-  if (col === 'intraday') return intraday[ticker]                ?? -Infinity;
-  if (col === 'chg')      return changes[ticker]                 ?? -Infinity;
-  if (col === 'weekly')   return weekly[ticker]                  ?? -Infinity;
-  if (col === 'atrLow')   return atrMetrics?.[ticker]?.atr_low        ?? -Infinity;
-  if (col === 'atrLowPrevFri') return atrMetrics?.[ticker]?.atr_low_prev_friday ?? -Infinity;
-  if (col === 'atrHigh')  return atrMetrics?.[ticker]?.atr_high        ?? -Infinity;
-  if (col === 'atrHighPrevFri')  return atrMetrics?.[ticker]?.atr_high_prev_friday ?? -Infinity;
-  return 0;
 }
 
 function updateSortArrows() {
   document.querySelectorAll('th.sortable').forEach(th => {
     const tbodyId = th.dataset.tbody;
-    const col     = th.dataset.sort;
-    const ss      = sortState[tbodyId];
-    const arrow   = th.querySelector('.sort-arrow');
-    const active  = ss?.col === col;
+    const col = th.dataset.sort;
+    const ss = sortState[tbodyId];
+    const arrow = th.querySelector('.sort-arrow');
+    const active = ss?.col === col;
     th.classList.toggle('sort-active', active);
     arrow.textContent = active ? (ss.dir === -1 ? ' ▼' : ' ▲') : '';
   });
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
 function barMode(vals) {
   const hasPos = vals.some(v => v > 0), hasNeg = vals.some(v => v < 0);
   return (hasPos && hasNeg) ? 'butterfly' : hasPos ? 'allPos' : 'allNeg';
@@ -340,82 +351,59 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
          getSortValue(b.ticker, ss.col, series, changes, weekly, intraday, atrMetrics)) * ss.dir)
     : displayOrder;
 
-  const allChg      = order.map(({ ticker }) => changes[ticker]).filter(v => v != null);
-  const allAtrLowChg  = order.map(({ ticker }) => {
-    const m = atrMetrics?.[ticker]; const v = m?.atr_low ?? null; const p = m?.atr_low_prev_friday ?? null;
-    return (v != null && p != null) ? v - p : null;
-  }).filter(v => v != null);
-  const allAtrHighChg = order.map(({ ticker }) => {
-    const m = atrMetrics?.[ticker]; const v = m?.atr_high ?? null; const p = m?.atr_high_prev_friday ?? null;
-    return (v != null && p != null) ? v - p : null;
-  }).filter(v => v != null);
-  const maxAbsAtrLowChg  = Math.max(...allAtrLowChg.map(Math.abs),  0.01);
+  const allChg = order.map(({ ticker }) => changes[ticker]).filter(v => v != null);
+  const allAtrLowChg = order
+    .map(({ ticker }) => atrDelta(atrMetrics?.[ticker], 'atr_low', 'atr_low_prev_friday'))
+    .filter(v => v != null);
+  const allAtrHighChg = order
+    .map(({ ticker }) => atrDelta(atrMetrics?.[ticker], 'atr_high', 'atr_high_prev_friday'))
+    .filter(v => v != null);
+  const maxAbsAtrLowChg = Math.max(...allAtrLowChg.map(Math.abs), 0.01);
   const maxAbsAtrHighChg = Math.max(...allAtrHighChg.map(Math.abs), 0.01);
-  const atrLowChgMode  = barMode(allAtrLowChg);
+  const atrLowChgMode = barMode(allAtrLowChg);
   const atrHighChgMode = barMode(allAtrHighChg);
-  const allWeekly   = order.map(({ ticker }) => weekly[ticker]).filter(v => v != null);
-  const allIntra    = order.map(({ ticker }) => intraday[ticker]).filter(v => v != null);
-  const maxAbsChg   = Math.max(...allChg.map(Math.abs),    0.01);
+  const allWeekly = order.map(({ ticker }) => weekly[ticker]).filter(v => v != null);
+  const allIntra = order.map(({ ticker }) => intraday[ticker]).filter(v => v != null);
+  const maxAbsChg = Math.max(...allChg.map(Math.abs), 0.01);
   const maxAbsWeekly = Math.max(...allWeekly.map(Math.abs), 0.01);
-  const maxAbsIntra = Math.max(...allIntra.map(Math.abs),  0.01);
-  const chgMode     = barMode(allChg);
-  const weeklyMode  = barMode(allWeekly);
-  const intraMode   = barMode(allIntra);
+  const maxAbsIntra = Math.max(...allIntra.map(Math.abs), 0.01);
+  const chgMode = barMode(allChg);
+  const weeklyMode = barMode(allWeekly);
+  const intraMode = barMode(allIntra);
 
   document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
-    const isSpy  = ticker === 'SPY';
-    const raw    = isSpy ? Array(N_BARS).fill(0) : (series[ticker] ?? []);
-    const values = raw.slice(-N_BARS);
+    const isSpy = ticker === 'SPY';
+    const values = (isSpy ? Array(N_BARS).fill(0) : (series[ticker] ?? [])).slice(-N_BARS);
 
-    // RS_STS%
     let stsHtml = '<span class="num-value">—</span>';
     if (!isSpy && values.length) {
       const pr = percentRank(values, values[values.length - 1]);
-      if (pr !== null)
-        stsHtml = `<span class="num-value">${Math.round(pr * 100)}%</span>`;
+      if (pr !== null) stsHtml = `<span class="num-value">${Math.round(pr * 100)}%</span>`;
     }
 
-    // Intraday %
-    const intra     = intraday[ticker] ?? null;
-    const intraText = intra != null ? `${intra >= 0 ? '+' : ''}${intra.toFixed(2)}%` : '—';
-
-    // Daily %
-    const chg     = changes[ticker] ?? null;
-    const chgText = chg != null ? `${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%` : '—';
-
-    // Weekly %
-    const wkly     = weekly[ticker] ?? null;
-    const wklyText = wkly != null ? `${wkly >= 0 ? '+' : ''}${wkly.toFixed(2)}%` : '—';
-
-    // ATR metrics
-    const m          = atrMetrics?.[ticker];
-    const atrLow     = m?.atr_low        ?? null;
-    const atrLowPrevFri   = m?.atr_low_prev_friday ?? null;
-    const atrHigh    = m?.atr_high        ?? null;
-    const atrHighPrevFri    = m?.atr_high_prev_friday ?? null;
-    const atrLowWkChg  = (atrLow != null && atrLowPrevFri != null) ? atrLow - atrLowPrevFri : null;
-    const atrHighWkChg = (atrHigh != null && atrHighPrevFri != null) ? atrHigh - atrHighPrevFri : null;
-    const atrLowHtml = atrLow != null
-      ? `<span class="num-value">${atrLow.toFixed(1)}</span>`
-      : '<span class="num-value">—</span>';
-    const atrLowPrevFriHtml = atrLowPrevFri != null
-      ? `<span class="num-value">${atrLowPrevFri.toFixed(1)}</span>`
-      : '<span class="num-value">—</span>';
-    const atrHighHtml = atrHigh != null
-      ? `<span class="num-value${atrHigh > 0 ? ' atr-new-high' : ''}">${atrHigh.toFixed(1)}</span>`
-      : '<span class="num-value">—</span>';
-    const atrHighPrevFriHtml = atrHighPrevFri != null
-      ? `<span class="num-value">${atrHighPrevFri.toFixed(1)}</span>`
-      : '<span class="num-value">—</span>';
+    const intra = intraday[ticker] ?? null;
+    const chg = changes[ticker] ?? null;
+    const wkly = weekly[ticker] ?? null;
+    const m = atrMetrics?.[ticker];
+    const atrLow = m?.atr_low ?? null;
+    const atrLowPrevFri = m?.atr_low_prev_friday ?? null;
+    const atrHigh = m?.atr_high ?? null;
+    const atrHighPrevFri = m?.atr_high_prev_friday ?? null;
+    const atrLowWkChg = atrDelta(m, 'atr_low', 'atr_low_prev_friday');
+    const atrHighWkChg = atrDelta(m, 'atr_high', 'atr_high_prev_friday');
+    const atrLowHtml = numCell(atrLow, 1);
+    const atrLowPrevFriHtml = numCell(atrLowPrevFri, 1);
+    const atrHighHtml = numCell(atrHigh, 1, atrHigh > 0 ? ' atr-new-high' : '');
+    const atrHighPrevFriHtml = numCell(atrHighPrevFri, 1);
 
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="sts-cell">${stsHtml}</td>
-      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(intra, intraMode, maxAbsIntra)}<span class="chg-text">${intraText}</span></div></td>
-      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${chgText}</span></div></td>
-      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(wkly, weeklyMode, maxAbsWeekly)}<span class="chg-text">${wklyText}</span></div></td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(intra, intraMode, maxAbsIntra)}<span class="chg-text">${pctText(intra)}</span></div></td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${pctText(chg)}</span></div></td>
+      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(wkly, weeklyMode, maxAbsWeekly)}<span class="chg-text">${pctText(wkly)}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrLowWkChg, atrLowChgMode, maxAbsAtrLowChg)}<span class="chg-text">${atrLowHtml}</span></div></td>
       <td class="atr-cell">${atrLowPrevFriHtml}</td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrHighWkChg, atrHighChgMode, maxAbsAtrHighChg)}<span class="chg-text">${atrHighHtml}</span></div></td>
@@ -424,17 +412,14 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
   }).join('');
 }
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
 (async () => {
   try {
     const [config, latest] = await Promise.all([
-      fetch('./data/config.json').then(r => { if (!r.ok) throw new Error(`config HTTP ${r.status}`); return r.json(); }),
-      fetch('./data/latest.json').then(r => { if (!r.ok) throw new Error(`data HTTP ${r.status}`);   return r.json(); }),
+      fetchJson('./data/config.json'),
+      fetchJson('./data/latest.json'),
     ]);
 
-    // Build tables from config
-    document.getElementById('dashboard').innerHTML =
-      config.sections.map(buildTable).join('');
+    document.getElementById('dashboard').innerHTML = config.sections.map(buildTable).join('');
 
     if (!latest.date) {
       showStatus('数据尚未生成，等待首次 GitHub Actions 运行（北京时间每日 06:00）。');
@@ -442,20 +427,19 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       return;
     }
 
-    document.getElementById('data-date').textContent   = latest.date;
+    document.getElementById('data-date').textContent = latest.date;
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('dashboard').style.display = 'block';
 
-    _series     = latest.vars_series      ?? {};
-    _changes    = latest.daily_change     ?? {};
-    _weekly     = latest.weekly_change    ?? {};
-    _intraday   = latest.intraday_change  ?? {};
-    _atrMetrics = latest.atr_metrics      ?? {};
+    _series = latest.vars_series ?? {};
+    _changes = latest.daily_change ?? {};
+    _weekly = latest.weekly_change ?? {};
+    _intraday = latest.intraday_change ?? {};
+    _atrMetrics = latest.atr_metrics ?? {};
 
-    const TBODY_TO_ORDER = {};
-    config.sections.forEach(s => {
-      TBODY_TO_ORDER[`${s.id}-body`] = s.rows.map(r => ({ ticker: r.ticker, market: r.label }));
-    });
+    const TBODY_TO_ORDER = Object.fromEntries(
+      config.sections.map(s => [`${s.id}-body`, s.rows.map(r => ({ ticker: r.ticker, market: r.label }))]),
+    );
 
     Object.entries(TBODY_TO_ORDER).forEach(([id, order]) =>
       renderSection(order, id, _series, _changes, _weekly, _intraday, _atrMetrics));
