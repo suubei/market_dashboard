@@ -396,11 +396,12 @@ def _atr_dist_series(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
 def compute_atr_metrics(data: dict, last_day: date) -> dict:
     """
     For each ticker compute ATR%-normalised distance from 52W extremes, plus
-    weekly change in atr_low vs the previous Friday's closing value.
+    atr_low snapshot as of last Friday close (for intra-week comparisons).
 
-      atr_low        = ((Close - Low_52w)  / Low_52w)  / (ATR / Close)
-      atr_high       = ((Close - High_52w) / High_52w) / (ATR / Close)
-      atr_low_wk_chg = atr_low_today - atr_low_last_friday
+      atr_low          = today's ATR‑normalised distance from 52W low
+      atr_high         = today's ATR‑normalised distance from 52W high
+      atr_high_wk_chg  = atr_high_today − atr_high_last_friday
+      atr_low_last_friday = atr_low as of prev Friday close
     """
     prev_friday = get_last_week_friday(last_day)
     prev_ts     = pd.Timestamp(prev_friday)
@@ -427,22 +428,23 @@ def compute_atr_metrics(data: dict, last_day: date) -> dict:
         atr_low_now  = (current - low_52w)  / low_52w  / atr_pct
         atr_high_now = (current - high_52w) / high_52w / atr_pct
 
-        # Weekly change: today vs last Friday
+        # Last Friday snapshots (vs same-date 52W extremes)
         low_series, high_series = _atr_dist_series(df)
-        atr_low_wk_chg = atr_high_wk_chg = None
+        atr_high_wk_chg    = None
+        atr_low_last_friday = None
         if prev_ts in low_series.index:
             bl_low  = float(low_series.loc[prev_ts])
             bl_high = float(high_series.loc[prev_ts])
             if not pd.isna(bl_low):
-                atr_low_wk_chg  = round(atr_low_now  - bl_low,  2)
+                atr_low_last_friday = round(bl_low, 2)
             if not pd.isna(bl_high):
                 atr_high_wk_chg = round(atr_high_now - bl_high, 2)
 
         metrics[ticker] = {
-            "atr_low":         round(atr_low_now,  2),
-            "atr_high":        round(atr_high_now, 2),
-            "atr_low_wk_chg":  atr_low_wk_chg,
-            "atr_high_wk_chg": atr_high_wk_chg,
+            "atr_low":              round(atr_low_now,  2),
+            "atr_high":             round(atr_high_now, 2),
+            "atr_high_wk_chg":      atr_high_wk_chg,
+            "atr_low_last_friday":  atr_low_last_friday,
         }
     return metrics
 
