@@ -175,6 +175,7 @@
         { "ticker": "BITW", "label": "Crypto Index" },
         { "ticker": "AIQ", "label": "AI Software & Data Processing" },
         { "ticker": "BAI", "label": "AI & Tech (Active)" },
+        { "ticker": "DRAM", "label": "DRAM & Memory" },
         { "ticker": "DRIV", "label": "EVs & Autonomous Vehicles" },
         { "ticker": "HYDR", "label": "Hydrogen & Fuel Cells" },
         { "ticker": "PBW", "label": "Clean Energy" },
