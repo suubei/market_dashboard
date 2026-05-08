@@ -364,6 +364,45 @@ def compute_weekly_changes(data: dict, last_day: date) -> dict:
     return changes
 
 
+def compute_monthly_changes(data: dict, last_day: date) -> dict:
+    """Return {ticker: monthly_pct_change} — Close vs last trading day of previous month."""
+    first_of_month = last_day.replace(day=1)
+    prev_month_end = pd.Timestamp(first_of_month - timedelta(days=1))
+    changes = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        close = data[ticker]["adjClose"].dropna()
+        baseline_series = close[close.index <= prev_month_end]
+        if baseline_series.empty:
+            continue
+        baseline = float(baseline_series.iloc[-1])
+        if baseline != 0:
+            changes[ticker] = round(
+                (close.iloc[-1] - baseline) / baseline * 100, 2
+            )
+    return changes
+
+
+def compute_ytd_changes(data: dict, last_day: date) -> dict:
+    """Return {ticker: YTD_pct_change} — Close vs last trading day of previous year."""
+    prev_year_end = pd.Timestamp(date(last_day.year - 1, 12, 31))
+    changes = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        close = data[ticker]["adjClose"].dropna()
+        baseline_series = close[close.index <= prev_year_end]
+        if baseline_series.empty:
+            continue
+        baseline = float(baseline_series.iloc[-1])
+        if baseline != 0:
+            changes[ticker] = round(
+                (close.iloc[-1] - baseline) / baseline * 100, 2
+            )
+    return changes
+
+
 def compute_intraday_changes(data: dict) -> dict:
     """Return {ticker: intraday_pct_change} — latest Close vs latest Open."""
     changes = {}
@@ -449,8 +488,8 @@ def compute_atr_metrics(data: dict, last_day: date) -> dict:
 
 # ── Persistence ───────────────────────────────────────────────────────────────
 def save_data(trade_date: date, vars_result: dict, vars_series: dict,
-              daily_changes: dict, weekly_changes: dict,
-              intraday_changes: dict, atr_metrics: dict) -> None:
+              daily_changes: dict, weekly_changes: dict, monthly_changes: dict,
+              ytd_changes: dict, intraday_changes: dict, atr_metrics: dict) -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
 
@@ -462,6 +501,8 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict,
         "vars_series":      vars_series,
         "daily_change":     daily_changes,
         "weekly_change":    weekly_changes,
+        "monthly_change":   monthly_changes,
+        "ytd_change":       ytd_changes,
         "intraday_change":  intraday_changes,
         "atr_metrics":      atr_metrics,
     }
@@ -493,10 +534,13 @@ def main() -> None:
     vars_result, vars_series = compute_vars(data)
     daily_changes    = compute_daily_changes(data)
     weekly_changes   = compute_weekly_changes(data, last_day)
+    monthly_changes  = compute_monthly_changes(data, last_day)
+    ytd_changes      = compute_ytd_changes(data, last_day)
     intraday_changes = compute_intraday_changes(data)
     atr_metrics      = compute_atr_metrics(data, last_day)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
-    save_data(last_day, vars_result, vars_series, daily_changes, weekly_changes, intraday_changes, atr_metrics)
+    save_data(last_day, vars_result, vars_series, daily_changes, weekly_changes,
+              monthly_changes, ytd_changes, intraday_changes, atr_metrics)
 
 
 if __name__ == "__main__":
