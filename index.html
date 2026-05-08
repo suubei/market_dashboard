@@ -329,19 +329,15 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
     : displayOrder;
 
   const allChg = order.map(({ ticker }) => changes[ticker]).filter(v => v != null);
-  const allAtrLowChg = order
-    .map(({ ticker }) => atrDelta(atrMetrics?.[ticker], 'atr_low', 'atr_low_prev_friday'))
-    .filter(v => v != null);
-  const allAtrHighChg = order
-    .map(({ ticker }) => atrDelta(atrMetrics?.[ticker], 'atr_high', 'atr_high_prev_friday'))
-    .filter(v => v != null);
-  const maxAbsAtrLowChg = Math.max(...allAtrLowChg.map(Math.abs), 0.01);
-  const maxAbsAtrHighChg = Math.max(...allAtrHighChg.map(Math.abs), 0.01);
   const allWeekly = order.map(({ ticker }) => weekly[ticker]).filter(v => v != null);
   const allIntra = order.map(({ ticker }) => intraday[ticker]).filter(v => v != null);
+  const allAtrLow = order.map(({ ticker }) => atrMetrics?.[ticker]?.atr_low ?? null).filter(v => v != null);
+  const allAtrHigh = order.map(({ ticker }) => atrMetrics?.[ticker]?.atr_high ?? null).filter(v => v != null);
   const maxAbsChg = Math.max(...allChg.map(Math.abs), 0.01);
   const maxAbsWeekly = Math.max(...allWeekly.map(Math.abs), 0.01);
   const maxAbsIntra = Math.max(...allIntra.map(Math.abs), 0.01);
+  const maxAbsAtrLow = Math.max(...allAtrLow.map(Math.abs), 0.01);
+  const maxAbsAtrHigh = Math.max(...allAtrHigh.map(Math.abs), 0.01);
 
   document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
     const isSpy = ticker === 'SPY';
@@ -361,8 +357,6 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
     const atrLowPrevFri = m?.atr_low_prev_friday ?? null;
     const atrHigh = m?.atr_high ?? null;
     const atrHighPrevFri = m?.atr_high_prev_friday ?? null;
-    const atrLowWkChg = atrDelta(m, 'atr_low', 'atr_low_prev_friday');
-    const atrHighWkChg = atrDelta(m, 'atr_high', 'atr_high_prev_friday');
     const atrLowHtml = numCell(atrLow, 1);
     const atrLowPrevFriHtml = numCell(atrLowPrevFri, 1);
     const atrHighHtml = numCell(atrHigh, 1, atrHigh > 0 ? ' atr-new-high' : '');
@@ -376,9 +370,9 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       <td class="chg-cell" style="${intraBg(intra, maxAbsIntra)}"><span class="chg-text">${pctText(intra)}</span></td>
       <td class="chg-cell" style="${intraBg(chg, maxAbsChg)}"><span class="chg-text">${pctText(chg)}</span></td>
       <td class="chg-cell" style="${intraBg(wkly, maxAbsWeekly)}"><span class="chg-text">${pctText(wkly)}</span></td>
-      <td class="chg-cell" style="${intraBg(atrLowWkChg, maxAbsAtrLowChg)}"><span class="chg-text">${atrLowHtml}</span></td>
+      <td class="chg-cell" style="${intraBg(atrLow, maxAbsAtrLow)}"><span class="chg-text">${atrLowHtml}</span></td>
       <td class="atr-cell">${atrLowPrevFriHtml}</td>
-      <td class="chg-cell" style="${intraBg(atrHighWkChg, maxAbsAtrHighChg)}"><span class="chg-text">${atrHighHtml}</span></td>
+      <td class="chg-cell" style="${intraBg(atrHigh, maxAbsAtrHigh)}"><span class="chg-text">${atrHighHtml}</span></td>
       <td class="atr-cell">${atrHighPrevFriHtml}</td>
     </tr>`;
   }).join('');
