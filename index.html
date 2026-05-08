@@ -67,11 +67,13 @@
     .col-chg       { width: 110px; }
     .col-weekly    { width: 110px; }
     .col-atr-low   { width: 155px; }
-    .col-atr-wkchg { width: 175px; }
+    .col-atr-wkchg { width: 0; }
     .col-atr-high  { width: 155px; }
-    .col-atr-hchg  { width: 175px; }
+    .col-atr-hchg  { width: 0; }
 
-    .ticker-row td.prev-fri-cell { color: transparent; }
+    .ticker-table th.col-atr-wkchg,
+    .ticker-table th.col-atr-hchg,
+    .ticker-row td.prev-fri-cell { width: 0; padding: 0; overflow: hidden; border: none; }
 
     .ticker-table thead th {
       position: sticky;
@@ -409,8 +411,11 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       config.sections.map(s => [`${s.id}-body`, s.rows.map(r => ({ ticker: r.ticker, market: r.label }))]),
     );
 
+    Object.keys(TBODY_TO_ORDER).forEach(id => { sortState[id] = { col: 'atrLowPrevFri', dir: -1 }; });
+
     Object.entries(TBODY_TO_ORDER).forEach(([id, order]) =>
       renderSection(order, id, _series, _changes, _weekly, _intraday, _atrMetrics));
+    updateSortArrows();
 
     document.querySelectorAll('th.sortable').forEach(th => {
       th.addEventListener('click', () => {
