@@ -213,6 +213,14 @@ function numCell(v, dec, extraClass = '') {
   return `<span class="num-value${extraClass}">${v.toFixed(dec)}</span>`;
 }
 
+function intraBg(val, maxAbs) {
+  if (val == null) return '';
+  const alpha = (0.08 + Math.min(Math.abs(val) / maxAbs, 1) * 0.42).toFixed(3);
+  return val >= 0
+    ? `background:rgba(26,127,55,${alpha})`
+    : `background:rgba(207,34,46,${alpha})`;
+}
+
 function atrDelta(m, key, prevKey) {
   const v = m?.[key] ?? null, p = m?.[prevKey] ?? null;
   return v != null && p != null ? v - p : null;
@@ -401,7 +409,7 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       <td class="index-cell">${ticker}</td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="sts-cell">${stsHtml}</td>
-      <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(intra, intraMode, maxAbsIntra)}<span class="chg-text">${pctText(intra)}</span></div></td>
+      <td class="chg-cell intra-cell" style="${intraBg(intra, maxAbsIntra)}"><span class="chg-text">${pctText(intra)}</span></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(chg, chgMode, maxAbsChg)}<span class="chg-text">${pctText(chg)}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(wkly, weeklyMode, maxAbsWeekly)}<span class="chg-text">${pctText(wkly)}</span></div></td>
       <td class="chg-cell"><div class="chg-wrap">${buildChgBarSVG(atrLowWkChg, atrLowChgMode, maxAbsAtrLowChg)}<span class="chg-text">${atrLowHtml}</span></div></td>
