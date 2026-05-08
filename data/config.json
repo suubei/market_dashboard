@@ -177,6 +177,7 @@
         { "ticker": "BAI", "label": "AI & Tech (Active)" },
         { "ticker": "DRAM", "label": "DRAM & Memory" },
         { "ticker": "DRIV", "label": "EVs & Autonomous Vehicles" },
+        { "ticker": "DXYZ", "label": "Destiny Tech100" },
         { "ticker": "HYDR", "label": "Hydrogen & Fuel Cells" },
         { "ticker": "PBW", "label": "Clean Energy" },
         { "ticker": "QTUM", "label": "Quantum Computing & AI" },
