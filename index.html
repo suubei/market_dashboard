@@ -67,9 +67,13 @@
     .col-chg       { width: 110px; }
     .col-weekly    { width: 110px; }
     .col-atr-low   { width: 155px; }
-    .col-atr-wkchg { width: 175px; }
+    .col-atr-wkchg { width: 0; }
     .col-atr-high  { width: 155px; }
-    .col-atr-hchg  { width: 175px; }
+    .col-atr-hchg  { width: 0; }
+
+    .ticker-table th.col-atr-wkchg,
+    .ticker-table th.col-atr-hchg,
+    .ticker-row td.prev-fri-cell { width: 0; padding: 0; overflow: hidden; }
 
     .ticker-table thead th {
       position: sticky;
@@ -371,9 +375,9 @@ function renderSection(displayOrder, tbodyId, series, changes, weekly, intraday,
       <td class="chg-cell" style="${intraBg(chg, maxAbsChg)}"><span class="chg-text">${pctText(chg)}</span></td>
       <td class="chg-cell" style="${intraBg(wkly, maxAbsWeekly)}"><span class="chg-text">${pctText(wkly)}</span></td>
       <td class="chg-cell" style="${intraBg(atrLow, maxAbsAtrLow)}"><span class="chg-text">${atrLowHtml}</span></td>
-      <td class="atr-cell">${atrLowPrevFriHtml}</td>
+      <td class="atr-cell prev-fri-cell">${atrLowPrevFriHtml}</td>
       <td class="chg-cell" style="${intraBg(atrHigh, maxAbsAtrHigh)}"><span class="chg-text">${atrHighHtml}</span></td>
-      <td class="atr-cell">${atrHighPrevFriHtml}</td>
+      <td class="atr-cell prev-fri-cell">${atrHighPrevFriHtml}</td>
     </tr>`;
   }).join('');
 }
