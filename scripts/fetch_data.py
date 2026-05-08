@@ -345,62 +345,32 @@ def compute_daily_changes(data: dict) -> dict:
     return changes
 
 
-def compute_weekly_changes(data: dict, last_day: date) -> dict:
-    """Return {ticker: weekly_pct_change} — Close vs last Friday's Close."""
-    prev_friday = get_last_week_friday(last_day)
-    prev_ts     = pd.Timestamp(prev_friday)
-    changes = {}
+def _changes_since(data: dict, cutoff: pd.Timestamp) -> dict:
+    """Return {ticker: pct_change} — latest Close vs last available Close at or before cutoff."""
+    out = {}
     for ticker in TICKERS:
         if ticker not in data:
             continue
         close = data[ticker]["adjClose"].dropna()
-        if prev_ts not in close.index:
+        base_s = close[close.index <= cutoff]
+        if base_s.empty:
             continue
-        baseline = float(close.loc[prev_ts])
-        if baseline != 0:
-            changes[ticker] = round(
-                (close.iloc[-1] - baseline) / baseline * 100, 2
-            )
-    return changes
+        base = float(base_s.iloc[-1])
+        if base:
+            out[ticker] = round((close.iloc[-1] - base) / base * 100, 2)
+    return out
+
+
+def compute_weekly_changes(data: dict, last_day: date) -> dict:
+    return _changes_since(data, pd.Timestamp(get_last_week_friday(last_day)))
 
 
 def compute_monthly_changes(data: dict, last_day: date) -> dict:
-    """Return {ticker: monthly_pct_change} — Close vs last trading day of previous month."""
-    first_of_month = last_day.replace(day=1)
-    prev_month_end = pd.Timestamp(first_of_month - timedelta(days=1))
-    changes = {}
-    for ticker in TICKERS:
-        if ticker not in data:
-            continue
-        close = data[ticker]["adjClose"].dropna()
-        baseline_series = close[close.index <= prev_month_end]
-        if baseline_series.empty:
-            continue
-        baseline = float(baseline_series.iloc[-1])
-        if baseline != 0:
-            changes[ticker] = round(
-                (close.iloc[-1] - baseline) / baseline * 100, 2
-            )
-    return changes
+    return _changes_since(data, pd.Timestamp(last_day.replace(day=1) - timedelta(days=1)))
 
 
 def compute_ytd_changes(data: dict, last_day: date) -> dict:
-    """Return {ticker: YTD_pct_change} — Close vs last trading day of previous year."""
-    prev_year_end = pd.Timestamp(date(last_day.year - 1, 12, 31))
-    changes = {}
-    for ticker in TICKERS:
-        if ticker not in data:
-            continue
-        close = data[ticker]["adjClose"].dropna()
-        baseline_series = close[close.index <= prev_year_end]
-        if baseline_series.empty:
-            continue
-        baseline = float(baseline_series.iloc[-1])
-        if baseline != 0:
-            changes[ticker] = round(
-                (close.iloc[-1] - baseline) / baseline * 100, 2
-            )
-    return changes
+    return _changes_since(data, pd.Timestamp(date(last_day.year - 1, 12, 31)))
 
 
 def compute_intraday_changes(data: dict) -> dict:
