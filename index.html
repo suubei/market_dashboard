@@ -46,9 +46,13 @@
     }
     #meta b { color: var(--text); }
 
-    #btn-prev-fri {
+    #header-btns {
       flex-shrink: 0;
       margin-top: 2px;
+      display: flex;
+      gap: 6px;
+    }
+    .sort-btn {
       padding: 5px 12px;
       font-size: 0.78rem;
       font-weight: 600;
@@ -62,8 +66,8 @@
       white-space: nowrap;
       transition: background 0.1s, color 0.1s;
     }
-    #btn-prev-fri:hover { background: #d8dde3; color: var(--text); }
-    #btn-prev-fri.active { background: #0969da; border-color: #0969da; color: #fff; }
+    .sort-btn:hover { background: #d8dde3; color: var(--text); }
+    .sort-btn.active { background: #0969da; border-color: #0969da; color: #fff; }
 
     #status {
       max-width: 1445px;
@@ -198,7 +202,10 @@
       <span>更新时间：<b id="update-time">—</b>（北京时间）</span>
     </div>
   </div>
-  <button id="btn-prev-fri">Prev Fri ↓</button>
+  <div id="header-btns">
+    <button class="sort-btn" id="btn-wl-prev-fri">52WL Prev Fri ↓</button>
+    <button class="sort-btn" id="btn-wh-prev-fri">52WH Prev Fri ↓</button>
+  </div>
 </header>
 
 <div id="status"></div>
@@ -465,28 +472,31 @@ function renderSection(displayOrder, tbodyId) {
         sortState[tbodyId] = cur?.col === col ? { col, dir: -cur.dir } : { col, dir: -1 };
         renderSection(TBODY_TO_ORDER[tbodyId], tbodyId);
         updateSortArrows();
-        updatePrevFriBtn(TBODY_TO_ORDER);
+        syncBtns(TBODY_TO_ORDER);
       });
     });
 
-    const btn = document.getElementById('btn-prev-fri');
-    btn.addEventListener('click', () => {
+    function applyGlobalSort(col, btn) {
       const isActive = btn.classList.contains('active');
       Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => {
         if (isActive) delete sortState[id];
-        else sortState[id] = { col: 'atrLowPrevFri', dir: -1 };
+        else sortState[id] = { col, dir: -1 };
         renderSection(order, id);
       });
       updateSortArrows();
-      updatePrevFriBtn(TBODY_TO_ORDER);
-    });
-
-    function updatePrevFriBtn(tbodyMap) {
-      const allPrevFri = Object.keys(tbodyMap).every(
-        id => sortState[id]?.col === 'atrLowPrevFri' && sortState[id]?.dir === -1
-      );
-      btn.classList.toggle('active', allPrevFri);
+      syncBtns(TBODY_TO_ORDER);
     }
+
+    function syncBtns(tbodyMap) {
+      const ids = Object.keys(tbodyMap);
+      btnWL.classList.toggle('active', ids.every(id => sortState[id]?.col === 'atrLowPrevFri'  && sortState[id]?.dir === -1));
+      btnWH.classList.toggle('active', ids.every(id => sortState[id]?.col === 'atrHighPrevFri' && sortState[id]?.dir === -1));
+    }
+
+    const btnWL = document.getElementById('btn-wl-prev-fri');
+    const btnWH = document.getElementById('btn-wh-prev-fri');
+    btnWL.addEventListener('click', () => applyGlobalSort('atrLowPrevFri',  btnWL));
+    btnWH.addEventListener('click', () => applyGlobalSort('atrHighPrevFri', btnWH));
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);
