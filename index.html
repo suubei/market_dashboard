@@ -30,8 +30,12 @@
       max-width: 1445px;
       margin: 0 auto 28px;
       padding-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
     }
-    header h1 { font-size: 1.25rem; font-weight: 600; }
+    #header-left h1 { font-size: 1.25rem; font-weight: 600; }
     #meta {
       margin-top: 6px;
       font-size: 0.8rem;
@@ -41,6 +45,25 @@
       gap: 4px 20px;
     }
     #meta b { color: var(--text); }
+
+    #btn-prev-fri {
+      flex-shrink: 0;
+      margin-top: 2px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: background 0.1s, color 0.1s;
+    }
+    #btn-prev-fri:hover { background: #d8dde3; color: var(--text); }
+    #btn-prev-fri.active { background: #0969da; border-color: #0969da; color: #fff; }
 
     #status {
       max-width: 1445px;
@@ -168,11 +191,14 @@
 <body>
 
 <header>
-  <h1>Market Dashboard</h1>
-  <div id="meta">
-    <span>数据日期：<b id="data-date">—</b></span>
-    <span>更新时间：<b id="update-time">—</b>（北京时间）</span>
+  <div id="header-left">
+    <h1>Market Dashboard</h1>
+    <div id="meta">
+      <span>数据日期：<b id="data-date">—</b></span>
+      <span>更新时间：<b id="update-time">—</b>（北京时间）</span>
+    </div>
   </div>
+  <button id="btn-prev-fri">Prev Fri ↓</button>
 </header>
 
 <div id="status"></div>
@@ -429,7 +455,6 @@ function renderSection(displayOrder, tbodyId) {
       config.sections.map(s => [`${s.id}-body`, s.rows.map(r => ({ ticker: r.ticker, market: r.label }))]),
     );
 
-    Object.keys(TBODY_TO_ORDER).forEach(id => { sortState[id] = { col: 'atrLowPrevFri', dir: -1 }; });
     Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id));
     updateSortArrows();
 
@@ -440,8 +465,28 @@ function renderSection(displayOrder, tbodyId) {
         sortState[tbodyId] = cur?.col === col ? { col, dir: -cur.dir } : { col, dir: -1 };
         renderSection(TBODY_TO_ORDER[tbodyId], tbodyId);
         updateSortArrows();
+        updatePrevFriBtn(TBODY_TO_ORDER);
       });
     });
+
+    const btn = document.getElementById('btn-prev-fri');
+    btn.addEventListener('click', () => {
+      const isActive = btn.classList.contains('active');
+      Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => {
+        if (isActive) delete sortState[id];
+        else sortState[id] = { col: 'atrLowPrevFri', dir: -1 };
+        renderSection(order, id);
+      });
+      updateSortArrows();
+      updatePrevFriBtn(TBODY_TO_ORDER);
+    });
+
+    function updatePrevFriBtn(tbodyMap) {
+      const allPrevFri = Object.keys(tbodyMap).every(
+        id => sortState[id]?.col === 'atrLowPrevFri' && sortState[id]?.dir === -1
+      );
+      btn.classList.toggle('active', allPrevFri);
+    }
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);
