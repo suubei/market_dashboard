@@ -1,0 +1,26 @@
+{
+  "data_source": "yahoo",
+  "sections": [
+    {
+      "id": "watchlist-1",
+      "label": "Group 1",
+      "rows": [
+        { "ticker": "SPY", "label": "S&P 500" }
+      ]
+    },
+    {
+      "id": "watchlist-2",
+      "label": "Group 2",
+      "rows": [
+        { "ticker": "QQQ", "label": "Nasdaq 100" }
+      ]
+    },
+    {
+      "id": "watchlist-3",
+      "label": "Group 3",
+      "rows": [
+        { "ticker": "IWM", "label": "Russell 2000" }
+      ]
+    }
+  ]
+}
