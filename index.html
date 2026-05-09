@@ -138,9 +138,6 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .ticker-row {
-      height: 32px;
-    }
     .ticker-row:hover { background: #f0f3f6; }
 
     .ticker-row td {
@@ -174,7 +171,6 @@
     }
     .chg-text { position: relative; }
     .atr-new-high { color: var(--pos); }
-    .atr-neg { color: var(--neg); }
 
     .ticker-row td.chg-cell { padding: 0 10px; text-align: right; }
 
@@ -452,7 +448,7 @@ function renderSection(displayOrder, tbodyId) {
 
     _series      = latest.vars_series     ?? {};
     _priceSeries = latest.price_series   ?? {};
-    _changes    = latest.daily_change    ?? {};
+    _changes     = latest.daily_change   ?? {};
     _weekly     = latest.weekly_change   ?? {};
     _monthly    = latest.monthly_change  ?? {};
     _ytd        = latest.ytd_change      ?? {};

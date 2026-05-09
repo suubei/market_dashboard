@@ -345,6 +345,18 @@ def compute_daily_changes(data: dict) -> dict:
     return changes
 
 
+def compute_price_series(data: dict, n: int = 21) -> dict:
+    """Return {ticker: [last n adjClose prices]} for the 1-month line chart."""
+    out = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        close = data[ticker]["adjClose"].dropna()
+        if len(close) >= 2:
+            out[ticker] = [round(float(v), 4) for v in close.iloc[-n:].values]
+    return out
+
+
 def _changes_since(data: dict, cutoff: pd.Timestamp) -> dict:
     """Return {ticker: pct_change} — latest Close vs last available Close at or before cutoff."""
     out = {}
@@ -371,18 +383,6 @@ def compute_monthly_changes(data: dict, last_day: date) -> dict:
 
 def compute_ytd_changes(data: dict, last_day: date) -> dict:
     return _changes_since(data, pd.Timestamp(date(last_day.year - 1, 12, 31)))
-
-
-def compute_price_series(data: dict, n: int = 21) -> dict:
-    """Return {ticker: [last n adjClose prices]} for the 1-month line chart."""
-    out = {}
-    for ticker in TICKERS:
-        if ticker not in data:
-            continue
-        close = data[ticker]["adjClose"].dropna()
-        if len(close) >= 2:
-            out[ticker] = [round(float(v), 4) for v in close.iloc[-n:].values]
-    return out
 
 
 def compute_intraday_changes(data: dict) -> dict:
@@ -469,32 +469,17 @@ def compute_atr_metrics(data: dict, last_day: date) -> dict:
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
-def save_data(trade_date: date, vars_result: dict, vars_series: dict,
-              daily_changes: dict, weekly_changes: dict, monthly_changes: dict,
-              ytd_changes: dict, intraday_changes: dict, atr_metrics: dict,
-              price_series: dict) -> None:
+def save_data(trade_date: date, metrics: dict) -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
-    date_str = trade_date.isoformat()
-
     payload = {
-        "date":             date_str,
-        "updated_at":       datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "params":           {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
-        "vars":             vars_result,
-        "vars_series":      vars_series,
-        "price_series":     price_series,
-        "daily_change":     daily_changes,
-        "weekly_change":    weekly_changes,
-        "monthly_change":   monthly_changes,
-        "ytd_change":       ytd_changes,
-        "intraday_change":  intraday_changes,
-        "atr_metrics":      atr_metrics,
+        "date":       trade_date.isoformat(),
+        "updated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "params":     {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
+        **metrics,
     }
-
     with open(LATEST_PATH, "w") as f:
         json.dump(payload, f, indent=2)
-
-    log.info("Saved  date=%s  vars=%s", date_str, payload["vars"])
+    log.info("Saved  date=%s  vars=%s", payload["date"], payload["vars"])
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -516,16 +501,18 @@ def main() -> None:
     data = fetch_all(TICKERS, start, last_day, last_day)
 
     vars_result, vars_series = compute_vars(data)
-    daily_changes    = compute_daily_changes(data)
-    weekly_changes   = compute_weekly_changes(data, last_day)
-    monthly_changes  = compute_monthly_changes(data, last_day)
-    ytd_changes      = compute_ytd_changes(data, last_day)
-    intraday_changes = compute_intraday_changes(data)
-    atr_metrics      = compute_atr_metrics(data, last_day)
-    price_series     = compute_price_series(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
-    save_data(last_day, vars_result, vars_series, daily_changes, weekly_changes,
-              monthly_changes, ytd_changes, intraday_changes, atr_metrics, price_series)
+    save_data(last_day, {
+        "vars":            vars_result,
+        "vars_series":     vars_series,
+        "price_series":    compute_price_series(data),
+        "daily_change":    compute_daily_changes(data),
+        "weekly_change":   compute_weekly_changes(data, last_day),
+        "monthly_change":  compute_monthly_changes(data, last_day),
+        "ytd_change":      compute_ytd_changes(data, last_day),
+        "intraday_change": compute_intraday_changes(data),
+        "atr_metrics":     compute_atr_metrics(data, last_day),
+    })
 
 
 if __name__ == "__main__":
