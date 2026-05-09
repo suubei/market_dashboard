@@ -142,8 +142,6 @@ def fetch_yahoo(tickers: list[str], start: date, end: date) -> dict[str, pd.Data
     return result
 
 
-
-
 def compute_rs(data: dict) -> tuple[dict, dict]:
     """Return (rs_latest, rs_series).
 
@@ -167,12 +165,10 @@ def compute_rs(data: dict) -> tuple[dict, dict]:
         if len(rs_ratio) < 2:
             continue
 
-        rs_norm = rs_ratio
-
         if not series["dates"]:
-            series["dates"] = [d.strftime("%Y-%m-%d") for d in rs_norm.index]
+            series["dates"] = [d.strftime("%Y-%m-%d") for d in rs_ratio.index]
 
-        series[ticker]  = [round(float(v), 4) for v in rs_norm.values]
+        series[ticker]  = [round(float(v), 4) for v in rs_ratio.values]
         results[ticker] = series[ticker][-1]
 
     return results, series

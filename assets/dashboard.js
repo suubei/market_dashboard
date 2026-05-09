@@ -28,11 +28,6 @@ function pctText(v) {
   return v != null ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : '—';
 }
 
-function numCell(v, dec, extraClass = '') {
-  if (v == null) return '<span class="num-value">—</span>';
-  return `<span class="num-value${extraClass}">${v.toFixed(dec)}</span>`;
-}
-
 function intraBg(val, maxAbs) {
   if (val == null) return '';
   const alpha = (0.08 + Math.min(Math.abs(val) / maxAbs, 1) * 0.42).toFixed(3);
