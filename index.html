@@ -322,7 +322,7 @@ function buildHistogramSVG(values, isSpy) {
 }
 
 function buildLineChartSVG(values) {
-  const pts = (values ?? []).filter(v => v != null).slice(-5);
+  const pts = (values ?? []).filter(v => v != null);
   if (pts.length < 2) return '';
   const lo = Math.min(...pts), hi = Math.max(...pts);
   const range = hi - lo || 1;
