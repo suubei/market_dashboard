@@ -25,9 +25,8 @@ log = logging.getLogger(__name__)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 BENCHMARK  = "SPY"
-ATR_PERIOD = 14
 LOOKBACK   = 50
-FETCH_DAYS = 400   # calendar days; covers 52W (≈365) + ATR warm-up buffer
+FETCH_DAYS = 400   # calendar days; covers 52W (≈365) + buffer
 
 DATA_DIR    = os.path.join(os.path.dirname(__file__), "..", "data")
 LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
@@ -145,15 +144,6 @@ def fetch_yahoo(tickers: list[str], start: date, end: date) -> dict[str, pd.Data
 
 
 
-# ── VARS calculation ──────────────────────────────────────────────────────────
-def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
-    """Wilder's smoothed ATR (ewm with alpha = 1/period)."""
-    high, low, close = df["adjHigh"], df["adjLow"], df["adjClose"]
-    prev = close.shift(1)
-    tr = pd.concat([high - low, (high - prev).abs(), (low - prev).abs()], axis=1).max(axis=1)
-    return tr.ewm(com=period - 1, adjust=False).mean()
-
-
 def compute_rs(data: dict) -> tuple[dict, dict]:
     """Return (rs_latest, rs_series).
 
@@ -258,70 +248,36 @@ def compute_intraday_changes(data: dict) -> dict:
     return changes
 
 
-def _atr_dist_series(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
-    """Return (atr_low_series, atr_high_series) — full time-series for both 52W extremes."""
-    close    = df["adjClose"]
-    atr      = wilder_atr(df, ATR_PERIOD)
-    low_52w  = close.rolling(252, min_periods=1).min()
-    high_52w = close.rolling(252, min_periods=1).max()
-    atr_pct  = atr / close
-    return (
-        ((close - low_52w)  / low_52w)  / atr_pct,
-        ((close - high_52w) / high_52w) / atr_pct,
-    )
-
-
-def compute_atr_metrics(data: dict, last_day: date) -> dict:
-    """
-    ATR%-normalised distance from 52W low/high today, plus the same metric
-    as of the last NYSE Friday close (prev_friday snapshots).
-
-      atr_low / atr_high            — today
-      atr_low_prev_friday / …_high  — last Friday (for intra-week tracking)
-    """
-    prev_friday = get_last_week_friday(last_day)
-    prev_ts     = pd.Timestamp(prev_friday)
-    log.info("Weekly baseline: %s (last Friday before %s)", prev_friday, last_day)
+def compute_52wl_metrics(data: dict, last_day: date) -> dict:
+    """Return {ticker: {off_52wl, off_52wl_prev_fri}} — % above 52W low."""
+    prev_ts = pd.Timestamp(get_last_week_friday(last_day))
+    log.info("52WL baseline Friday: %s", prev_ts.date())
 
     metrics = {}
     for ticker in TICKERS:
         if ticker not in data:
             continue
-        df    = data[ticker]
-        close = df["adjClose"]
-        atr   = wilder_atr(df, ATR_PERIOD)
-
-        current = float(close.iloc[-1])
-        atr_val = float(atr.iloc[-1])
-        if atr_val == 0 or current == 0:
+        close = data[ticker]["adjClose"].dropna()
+        if close.empty:
             continue
 
-        window   = close.iloc[-252:]
-        low_52w  = float(window.min())
-        high_52w = float(window.max())
-        atr_pct  = atr_val / current
+        current = float(close.iloc[-1])
+        low_now = float(close.iloc[-252:].min())
+        if low_now == 0:
+            continue
 
-        atr_low_now  = (current - low_52w)  / low_52w  / atr_pct
-        atr_high_now = (current - high_52w) / high_52w / atr_pct
+        off_now = round((current - low_now) / low_now * 100, 2)
 
-        # Prev Friday snapshots (same formula, historical row)
-        low_series, high_series = _atr_dist_series(df)
-        atr_low_prev_friday = None
-        atr_high_prev_friday = None
-        if prev_ts in low_series.index:
-            bl_low  = float(low_series.loc[prev_ts])
-            bl_high = float(high_series.loc[prev_ts])
-            if not pd.isna(bl_low):
-                atr_low_prev_friday  = round(bl_low,  2)
-            if not pd.isna(bl_high):
-                atr_high_prev_friday = round(bl_high, 2)
+        # Prev Friday snapshot
+        off_fri = None
+        close_to_fri = close[close.index <= prev_ts]
+        if not close_to_fri.empty:
+            fri_close = float(close_to_fri.iloc[-1])
+            fri_low   = float(close_to_fri.iloc[-252:].min())
+            if fri_low:
+                off_fri = round((fri_close - fri_low) / fri_low * 100, 2)
 
-        metrics[ticker] = {
-            "atr_low":               round(atr_low_now,  2),
-            "atr_high":              round(atr_high_now, 2),
-            "atr_low_prev_friday":   atr_low_prev_friday,
-            "atr_high_prev_friday":  atr_high_prev_friday,
-        }
+        metrics[ticker] = {"off_52wl": off_now, "off_52wl_prev_fri": off_fri}
     return metrics
 
 
@@ -332,7 +288,7 @@ def _filter_metrics(metrics: dict, subset: set[str]) -> dict:
     for k, v in metrics.items():
         if not isinstance(v, dict):
             out[k] = v
-        elif k == "vars_series":
+        elif k == "rs_series":
             out[k] = {"dates": v.get("dates", [])}
             out[k].update({t: v[t] for t in subset if t in v})
         else:
@@ -348,7 +304,7 @@ def save_data(trade_date: date, metrics: dict, output_path: str = LATEST_PATH,
     payload = {
         "date":       trade_date.isoformat(),
         "updated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "params":     {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
+        "params":     {"lookback": LOOKBACK},
         **metrics,
     }
     with open(output_path, "w") as f:
@@ -385,7 +341,7 @@ def main() -> None:
         "monthly_change":  compute_monthly_changes(data, last_day),
         "ytd_change":      compute_ytd_changes(data, last_day),
         "intraday_change": compute_intraday_changes(data),
-        "atr_metrics":     compute_atr_metrics(data, last_day),
+        "wl_metrics":      compute_52wl_metrics(data, last_day),
     }
     save_data(last_day, metrics, LATEST_PATH,
               subset=set(_tickers_from_config(CONFIG_PATH)))

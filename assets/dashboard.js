@@ -51,7 +51,7 @@ const ZERO_Y = VB_H / 2, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS, BAR_W = S
 
 function buildTable(section) {
   const id = `${section.id}-body`;
-  const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', monthly: 'col-monthly', ytd: 'col-ytd', atrLow: 'col-atr-low', atrLowPrevFri: 'col-atr-wkchg', atrHigh: 'col-atr-high', atrHighPrevFri: 'col-atr-hchg' };
+  const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', monthly: 'col-monthly', ytd: 'col-ytd', off52wl: 'col-atr-low', off52wlPrevFri: 'col-atr-wkchg' };
   const sortTh = (col, label) =>
     `<th class="${colClass[col]} sortable" data-sort="${col}" data-tbody="${id}">${label}<span class="sort-arrow"></span></th>`;
   return `<table class="ticker-table">
@@ -61,7 +61,6 @@ function buildTable(section) {
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly"><col class="col-monthly"><col class="col-ytd">
       <col class="col-atr-low"><col class="col-atr-wkchg">
-      <col class="col-atr-high"><col class="col-atr-hchg">
     </colgroup>
     <thead><tr>
       <th class="col-market">${section.label}</th>
@@ -74,10 +73,8 @@ function buildTable(section) {
       ${sortTh('weekly', 'Weekly %')}
       ${sortTh('monthly', 'Monthly %')}
       ${sortTh('ytd', 'YTD %')}
-      ${sortTh('atrLow', '52WL Dist (ATR%)')}
-      ${sortTh('atrLowPrevFri', '52WL Dist (Prev Fri)')}
-      ${sortTh('atrHigh', '52WH Dist (ATR%)')}
-      ${sortTh('atrHighPrevFri', '52WH Dist (Prev Fri)')}
+      ${sortTh('off52wl', 'Off 52WL')}
+      ${sortTh('off52wlPrevFri', 'Off 52WL (Prev Fri)')}
     </tr></thead>
     <tbody id="${id}"></tbody>
   </table>`;
@@ -123,7 +120,7 @@ function buildLineChartSVG(values) {
 }
 
 const sortState = {};
-let _series = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _atrMetrics = {};
+let _series = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _wlMetrics = {};
 
 function getSortValue(ticker, col) {
   switch (col) {
@@ -137,10 +134,8 @@ function getSortValue(ticker, col) {
     case 'weekly':        return _weekly[ticker]                             ?? -Infinity;
     case 'monthly':       return _monthly[ticker]                            ?? -Infinity;
     case 'ytd':           return _ytd[ticker]                                ?? -Infinity;
-    case 'atrLow':        return _atrMetrics?.[ticker]?.atr_low              ?? -Infinity;
-    case 'atrLowPrevFri': return _atrMetrics?.[ticker]?.atr_low_prev_friday  ?? -Infinity;
-    case 'atrHigh':       return _atrMetrics?.[ticker]?.atr_high             ?? -Infinity;
-    case 'atrHighPrevFri':return _atrMetrics?.[ticker]?.atr_high_prev_friday ?? -Infinity;
+    case 'off52wl':        return _wlMetrics?.[ticker]?.off_52wl          ?? -Infinity;
+    case 'off52wlPrevFri': return _wlMetrics?.[ticker]?.off_52wl_prev_fri ?? -Infinity;
     default: return 0;
   }
 }
@@ -172,8 +167,7 @@ function renderSection(displayOrder, tbodyId) {
   const maxAbsWeekly  = maxAbs(vals(_weekly));
   const maxAbsMonthly = maxAbs(vals(_monthly));
   const maxAbsYtd     = maxAbs(vals(_ytd));
-  const maxAbsAtrLow  = maxAbs(order.map(({ ticker }) => _atrMetrics?.[ticker]?.atr_low  ?? null).filter(v => v != null));
-  const maxAbsAtrHigh = maxAbs(order.map(({ ticker }) => _atrMetrics?.[ticker]?.atr_high ?? null).filter(v => v != null));
+  const maxAbsOff52wl = maxAbs(order.map(({ ticker }) => _wlMetrics?.[ticker]?.off_52wl ?? null).filter(v => v != null));
 
   document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
     const isSpy  = ticker === 'SPY';
@@ -185,16 +179,14 @@ function renderSection(displayOrder, tbodyId) {
       if (pr !== null) stsHtml = `<span class="num-value">${Math.round(pr * 100)}%</span>`;
     }
 
-    const intra = _intraday[ticker] ?? null;
-    const chg   = _changes[ticker]  ?? null;
-    const wkly  = _weekly[ticker]   ?? null;
-    const mnth  = _monthly[ticker]  ?? null;
-    const ytdV  = _ytd[ticker]      ?? null;
-    const m     = _atrMetrics?.[ticker];
-    const atrLow         = m?.atr_low              ?? null;
-    const atrLowPrevFri  = m?.atr_low_prev_friday  ?? null;
-    const atrHigh        = m?.atr_high             ?? null;
-    const atrHighPrevFri = m?.atr_high_prev_friday ?? null;
+    const intra      = _intraday[ticker] ?? null;
+    const chg        = _changes[ticker]  ?? null;
+    const wkly       = _weekly[ticker]   ?? null;
+    const mnth       = _monthly[ticker]  ?? null;
+    const ytdV       = _ytd[ticker]      ?? null;
+    const m          = _wlMetrics?.[ticker];
+    const off52wl    = m?.off_52wl          ?? null;
+    const off52wlFri = m?.off_52wl_prev_fri ?? null;
 
     return `<tr class="ticker-row">
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
@@ -207,10 +199,8 @@ function renderSection(displayOrder, tbodyId) {
       <td class="chg-cell" style="${intraBg(wkly, maxAbsWeekly)}"><span class="chg-text">${pctText(wkly)}</span></td>
       <td class="chg-cell" style="${intraBg(mnth, maxAbsMonthly)}"><span class="chg-text">${pctText(mnth)}</span></td>
       <td class="chg-cell" style="${intraBg(ytdV, maxAbsYtd)}"><span class="chg-text">${pctText(ytdV)}</span></td>
-      <td class="chg-cell" style="${intraBg(atrLow, maxAbsAtrLow)}"><span class="chg-text">${numCell(atrLow, 1)}</span></td>
-      <td class="atr-cell prev-fri-cell">${numCell(atrLowPrevFri, 1)}</td>
-      <td class="chg-cell" style="${intraBg(atrHigh, maxAbsAtrHigh)}"><span class="chg-text">${numCell(atrHigh, 1, atrHigh > 0 ? ' atr-new-high' : '')}</span></td>
-      <td class="atr-cell prev-fri-cell">${numCell(atrHighPrevFri, 1)}</td>
+      <td class="chg-cell" style="${intraBg(off52wl, maxAbsOff52wl)}"><span class="chg-text">${pctText(off52wl)}</span></td>
+      <td class="atr-cell prev-fri-cell">${off52wlFri != null ? off52wlFri.toFixed(2) : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -241,7 +231,7 @@ function renderSection(displayOrder, tbodyId) {
     _monthly     = latest.monthly_change  ?? {};
     _ytd         = latest.ytd_change      ?? {};
     _intraday    = latest.intraday_change ?? {};
-    _atrMetrics  = latest.atr_metrics     ?? {};
+    _wlMetrics   = latest.wl_metrics      ?? {};
 
     const TBODY_TO_ORDER = Object.fromEntries(
       config.sections.map(s => [`${s.id}-body`, s.rows.map(r => ({
@@ -277,14 +267,11 @@ function renderSection(displayOrder, tbodyId) {
 
     function syncBtns(tbodyMap) {
       const ids = Object.keys(tbodyMap);
-      btnWL.classList.toggle('active', ids.every(id => sortState[id]?.col === 'atrLowPrevFri'  && sortState[id]?.dir === -1));
-      btnWH.classList.toggle('active', ids.every(id => sortState[id]?.col === 'atrHighPrevFri' && sortState[id]?.dir === -1));
+      btnWL.classList.toggle('active', ids.every(id => sortState[id]?.col === 'off52wlPrevFri' && sortState[id]?.dir === -1));
     }
 
     const btnWL = document.getElementById('btn-wl-prev-fri');
-    const btnWH = document.getElementById('btn-wh-prev-fri');
-    btnWL.addEventListener('click', () => applyGlobalSort('atrLowPrevFri',  btnWL));
-    btnWH.addEventListener('click', () => applyGlobalSort('atrHighPrevFri', btnWH));
+    btnWL.addEventListener('click', () => applyGlobalSort('off52wlPrevFri', btnWL));
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);

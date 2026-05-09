@@ -89,13 +89,10 @@ header {
 .col-weekly    { width: 110px; }
 .col-monthly   { width: 110px; }
 .col-ytd       { width: 110px; }
-.col-atr-low   { width: 155px; }
+.col-atr-low   { width: 130px; }
 .col-atr-wkchg { width: 0; }
-.col-atr-high  { width: 155px; }
-.col-atr-hchg  { width: 0; }
 
 .ticker-table th.col-atr-wkchg,
-.ticker-table th.col-atr-hchg,
 .ticker-row td.prev-fri-cell { width: 0; padding: 0; overflow: hidden; border: none; }
 
 .ticker-table thead th {
@@ -114,8 +111,7 @@ header {
   text-align: center;
 }
 .ticker-table thead th.col-sts,
-.ticker-table thead th.col-atr-low,
-.ticker-table thead th.col-atr-high { white-space: nowrap; }
+.ticker-table thead th.col-atr-low { white-space: nowrap; }
 .ticker-table thead th.sortable { cursor: pointer; user-select: none; }
 .ticker-table thead th.sortable:hover { background: #d8dde3; }
 .ticker-table thead th.sort-active { color: var(--text); }
