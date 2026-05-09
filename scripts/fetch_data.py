@@ -373,6 +373,18 @@ def compute_ytd_changes(data: dict, last_day: date) -> dict:
     return _changes_since(data, pd.Timestamp(date(last_day.year - 1, 12, 31)))
 
 
+def compute_price_series(data: dict, n: int = 21) -> dict:
+    """Return {ticker: [last n adjClose prices]} for the 1-month line chart."""
+    out = {}
+    for ticker in TICKERS:
+        if ticker not in data:
+            continue
+        close = data[ticker]["adjClose"].dropna()
+        if len(close) >= 2:
+            out[ticker] = [round(float(v), 4) for v in close.iloc[-n:].values]
+    return out
+
+
 def compute_intraday_changes(data: dict) -> dict:
     """Return {ticker: intraday_pct_change} — latest Close vs latest Open."""
     changes = {}
@@ -459,7 +471,8 @@ def compute_atr_metrics(data: dict, last_day: date) -> dict:
 # ── Persistence ───────────────────────────────────────────────────────────────
 def save_data(trade_date: date, vars_result: dict, vars_series: dict,
               daily_changes: dict, weekly_changes: dict, monthly_changes: dict,
-              ytd_changes: dict, intraday_changes: dict, atr_metrics: dict) -> None:
+              ytd_changes: dict, intraday_changes: dict, atr_metrics: dict,
+              price_series: dict) -> None:
     os.makedirs(DATA_DIR, exist_ok=True)
     date_str = trade_date.isoformat()
 
@@ -469,6 +482,7 @@ def save_data(trade_date: date, vars_result: dict, vars_series: dict,
         "params":           {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
         "vars":             vars_result,
         "vars_series":      vars_series,
+        "price_series":     price_series,
         "daily_change":     daily_changes,
         "weekly_change":    weekly_changes,
         "monthly_change":   monthly_changes,
@@ -508,9 +522,10 @@ def main() -> None:
     ytd_changes      = compute_ytd_changes(data, last_day)
     intraday_changes = compute_intraday_changes(data)
     atr_metrics      = compute_atr_metrics(data, last_day)
+    price_series     = compute_price_series(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
     save_data(last_day, vars_result, vars_series, daily_changes, weekly_changes,
-              monthly_changes, ytd_changes, intraday_changes, atr_metrics)
+              monthly_changes, ytd_changes, intraday_changes, atr_metrics, price_series)
 
 
 if __name__ == "__main__":

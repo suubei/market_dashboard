@@ -339,7 +339,7 @@ function buildLineChartSVG(values) {
 }
 
 const sortState = {};
-let _series = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _atrMetrics = {};
+let _series = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _atrMetrics = {};
 
 function getSortValue(ticker, col) {
   switch (col) {
@@ -416,7 +416,7 @@ function renderSection(displayOrder, tbodyId) {
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
-      <td class="chart-cell">${buildLineChartSVG(_series[ticker])}</td>
+      <td class="chart-cell">${buildLineChartSVG(_priceSeries[ticker])}</td>
       <td class="sts-cell">${stsHtml}</td>
       <td class="chg-cell" style="${intraBg(intra, maxAbsIntra)}"><span class="chg-text">${pctText(intra)}</span></td>
       <td class="chg-cell" style="${intraBg(chg, maxAbsChg)}"><span class="chg-text">${pctText(chg)}</span></td>
@@ -450,7 +450,8 @@ function renderSection(displayOrder, tbodyId) {
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('dashboard').style.display = 'block';
 
-    _series     = latest.vars_series     ?? {};
+    _series      = latest.vars_series     ?? {};
+    _priceSeries = latest.price_series   ?? {};
     _changes    = latest.daily_change    ?? {};
     _weekly     = latest.weekly_change   ?? {};
     _monthly    = latest.monthly_change  ?? {};
