@@ -234,7 +234,7 @@ function renderSection(displayOrder, tbodyId) {
     document.getElementById('update-time').textContent = toBeiJing(latest.updated_at);
     document.getElementById('dashboard').style.display = 'block';
 
-    _series      = latest.vars_series     ?? {};
+    _series      = latest.rs_series       ?? {};
     _priceSeries = latest.price_series    ?? {};
     _changes     = latest.daily_change    ?? {};
     _weekly      = latest.weekly_change   ?? {};

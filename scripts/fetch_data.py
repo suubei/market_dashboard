@@ -1,10 +1,9 @@
 """
-Fetch daily OHLCV data via Yahoo Finance and compute VARS for all non-SPY tickers vs SPY.
+Fetch daily OHLCV data via Yahoo Finance and compute RS (Price Ratio Relative Strength)
+for all non-SPY tickers vs SPY.
 
-VARS formula (mattishenner / Jeff Sun):
-  vol_adj_change_t = (Close_t - Close_{t-1}) / ATR_t
-  VARS = sum(vol_adj_change_asset, N) - sum(vol_adj_change_SPY, N)
-  ATR uses Wilder's smoothing: ewm(com = period-1, adjust=False)
+RS line = ticker_close / SPY_close, normalised to the start of the LOOKBACK window (= 0%).
+Positive values → outperforming SPY; negative → underperforming.
 """
 
 import json
@@ -156,37 +155,40 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
     return tr.ewm(com=period - 1, adjust=False).mean()
 
 
-def compute_vars(data: dict) -> tuple:
-    """
-    Returns (results, series):
-      results = {ticker: float}
-      series  = {"dates": [...], ticker: [float × LOOKBACK], ...}
-    """
-    spy_cum = (data[BENCHMARK]["adjClose"].diff() / wilder_atr(data[BENCHMARK], ATR_PERIOD)
-               ).rolling(LOOKBACK).sum()
+def compute_rs(data: dict) -> tuple[dict, dict]:
+    """Return (rs_latest, rs_series).
 
+    rs_series[ticker] = last LOOKBACK values of normalised price-ratio RS (%).
+      RS_ratio_t  = ticker_close_t / SPY_close_t
+      RS_norm_t   = (RS_ratio_t / RS_ratio_window_start - 1) * 100
+    rs_latest[ticker] = the final (most recent) normalised RS value.
+    """
+    spy_close = data[BENCHMARK]["adjClose"].dropna()
     results, series = {}, {"dates": []}
 
     for ticker in TICKERS:
         if ticker == BENCHMARK or ticker not in data:
             continue
-        df = data[ticker]
-        cum = (df["adjClose"].diff() / wilder_atr(df, ATR_PERIOD)).rolling(LOOKBACK).sum()
 
-        t_aligned, spy_aligned = cum.align(spy_cum, join="inner")
+        t_close = data[ticker]["adjClose"].dropna()
+        t_aligned, spy_aligned = t_close.align(spy_close, join="inner")
         if t_aligned.empty:
             log.warning("  No overlapping dates for %s – skipping", ticker)
             continue
 
-        recent = (t_aligned - spy_aligned).dropna().iloc[-LOOKBACK:]
-        if recent.empty:
-            log.warning("  No valid VARS data for %s – skipping", ticker)
+        rs_ratio = (t_aligned / spy_aligned).dropna().iloc[-LOOKBACK:]
+        if len(rs_ratio) < 2:
             continue
 
-        if not series["dates"]:
-            series["dates"] = [d.strftime("%Y-%m-%d") for d in recent.index]
+        base = float(rs_ratio.iloc[0])
+        if base == 0:
+            continue
+        rs_norm = ((rs_ratio / base) - 1) * 100
 
-        series[ticker]  = [round(float(v), 4) for v in recent.values]
+        if not series["dates"]:
+            series["dates"] = [d.strftime("%Y-%m-%d") for d in rs_norm.index]
+
+        series[ticker]  = [round(float(v), 4) for v in rs_norm.values]
         results[ticker] = series[ticker][-1]
 
     return results, series
@@ -378,11 +380,11 @@ def main() -> None:
 
     data = fetch_yahoo(TICKERS, start, last_day)
 
-    vars_result, vars_series = compute_vars(data)
-    log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
+    rs_latest, rs_series = compute_rs(data)
+    log.info("RS latest: %s", {k: round(v, 4) for k, v in rs_latest.items()})
     metrics = {
-        "vars":            vars_result,
-        "vars_series":     vars_series,
+        "rs":              rs_latest,
+        "rs_series":       rs_series,
         "price_series":    compute_price_series(data),
         "daily_change":    compute_daily_changes(data),
         "weekly_change":   compute_weekly_changes(data, last_day),
