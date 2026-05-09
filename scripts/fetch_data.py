@@ -44,12 +44,17 @@ LATEST_PATH = os.path.join(DATA_DIR, "latest.json")
 CONFIG_PATH = os.path.join(DATA_DIR, "config.json")
 CACHE_PATH  = os.path.join(DATA_DIR, "fetch_cache.json")
 
+# Extra config files: each maps to its own output JSON.
+EXTRA_CONFIGS: list[tuple[str, str]] = [
+    (os.path.join(DATA_DIR, "watchlist.json"),
+     os.path.join(DATA_DIR, "watchlist_latest.json")),
+]
 
-def load_config() -> tuple[list[str], str]:
-    """Return (tickers, data_source) from config.json."""
-    with open(CONFIG_PATH) as f:
+
+def _tickers_from_config(path: str) -> list[str]:
+    """Return ordered unique tickers from a config file."""
+    with open(path) as f:
         cfg = json.load(f)
-    data_source = cfg.get("data_source", "tiingo")
     seen, tickers = set(), []
     for section in cfg["sections"]:
         for row in section["rows"]:
@@ -57,6 +62,22 @@ def load_config() -> tuple[list[str], str]:
             if t not in seen:
                 seen.add(t)
                 tickers.append(t)
+    return tickers
+
+
+def load_config() -> tuple[list[str], str]:
+    """Return (all_unique_tickers, data_source) across all config files."""
+    with open(CONFIG_PATH) as f:
+        cfg = json.load(f)
+    data_source = cfg.get("data_source", "tiingo")
+    seen, tickers = set(), []
+    for t in _tickers_from_config(CONFIG_PATH):
+        seen.add(t); tickers.append(t)
+    for cfg_path, _ in EXTRA_CONFIGS:
+        if os.path.exists(cfg_path):
+            for t in _tickers_from_config(cfg_path):
+                if t not in seen:
+                    seen.add(t); tickers.append(t)
     if BENCHMARK not in seen:
         tickers.insert(0, BENCHMARK)
     return tickers, data_source
@@ -469,17 +490,34 @@ def compute_atr_metrics(data: dict, last_day: date) -> dict:
 
 
 # ── Persistence ───────────────────────────────────────────────────────────────
-def save_data(trade_date: date, metrics: dict) -> None:
-    os.makedirs(DATA_DIR, exist_ok=True)
+def _filter_metrics(metrics: dict, subset: set[str]) -> dict:
+    """Return metrics filtered to the given ticker subset."""
+    out = {}
+    for k, v in metrics.items():
+        if not isinstance(v, dict):
+            out[k] = v
+        elif k == "vars_series":
+            out[k] = {"dates": v.get("dates", [])}
+            out[k].update({t: v[t] for t in subset if t in v})
+        else:
+            out[k] = {t: v[t] for t in subset if t in v}
+    return out
+
+
+def save_data(trade_date: date, metrics: dict, output_path: str = LATEST_PATH,
+              subset: set[str] | None = None) -> None:
+    if subset is not None:
+        metrics = _filter_metrics(metrics, subset)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     payload = {
         "date":       trade_date.isoformat(),
         "updated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "params":     {"atr_period": ATR_PERIOD, "lookback": LOOKBACK},
         **metrics,
     }
-    with open(LATEST_PATH, "w") as f:
+    with open(output_path, "w") as f:
         json.dump(payload, f, indent=2)
-    log.info("Saved  date=%s  vars=%s", payload["date"], payload["vars"])
+    log.info("Saved → %s  (date=%s)", output_path, payload["date"])
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -502,7 +540,7 @@ def main() -> None:
 
     vars_result, vars_series = compute_vars(data)
     log.info("VARS result: %s", {k: round(v, 4) for k, v in vars_result.items()})
-    save_data(last_day, {
+    metrics = {
         "vars":            vars_result,
         "vars_series":     vars_series,
         "price_series":    compute_price_series(data),
@@ -512,7 +550,13 @@ def main() -> None:
         "ytd_change":      compute_ytd_changes(data, last_day),
         "intraday_change": compute_intraday_changes(data),
         "atr_metrics":     compute_atr_metrics(data, last_day),
-    })
+    }
+    save_data(last_day, metrics, LATEST_PATH,
+              subset=set(_tickers_from_config(CONFIG_PATH)))
+    for cfg_path, out_path in EXTRA_CONFIGS:
+        if os.path.exists(cfg_path):
+            save_data(last_day, metrics, out_path,
+                      subset=set(_tickers_from_config(cfg_path)))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
-/* Shared dashboard logic. Each page sets window.DASHBOARD_CONFIG before loading this file. */
+/* Shared dashboard logic. Each page sets window.DASHBOARD_CONFIG / DASHBOARD_DATA before loading. */
 const CONFIG_PATH = window.DASHBOARD_CONFIG ?? './data/config.json';
+const DATA_PATH   = window.DASHBOARD_DATA   ?? './data/latest.json';
 
 function showStatus(msg, isError = false) {
   const el = document.getElementById('status');
@@ -218,7 +219,7 @@ function renderSection(displayOrder, tbodyId) {
   try {
     const [config, latest] = await Promise.all([
       fetchJson(CONFIG_PATH),
-      fetchJson('./data/latest.json'),
+      fetchJson(DATA_PATH),
     ]);
 
     document.getElementById('dashboard').innerHTML = config.sections.map(buildTable).join('');
