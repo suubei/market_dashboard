@@ -5,21 +5,22 @@
       "id": "watchlist-1",
       "label": "Group 1",
       "rows": [
-        { "ticker": "SPY", "label": "S&P 500" }
+        { "ticker": "SPY",  "label": "S&P 500",     "industry": "Broad Market" },
+        { "ticker": "QQQ",  "label": "Nasdaq 100",  "industry": "Technology" }
       ]
     },
     {
       "id": "watchlist-2",
       "label": "Group 2",
       "rows": [
-        { "ticker": "QQQ", "label": "Nasdaq 100" }
+        { "ticker": "IWM",  "label": "Russell 2000", "industry": "Small Cap" }
       ]
     },
     {
       "id": "watchlist-3",
       "label": "Group 3",
       "rows": [
-        { "ticker": "IWM", "label": "Russell 2000" }
+        { "ticker": "GLD",  "label": "Gold ETF",     "industry": "Commodities" }
       ]
     }
   ]

@@ -244,7 +244,10 @@ function renderSection(displayOrder, tbodyId) {
     _atrMetrics  = latest.atr_metrics     ?? {};
 
     const TBODY_TO_ORDER = Object.fromEntries(
-      config.sections.map(s => [`${s.id}-body`, s.rows.map(r => ({ ticker: r.ticker, market: r.label }))]),
+      config.sections.map(s => [`${s.id}-body`, s.rows.map(r => ({
+        ticker: r.ticker,
+        market: r.industry ?? r.label,
+      }))]),
     );
 
     Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id));
