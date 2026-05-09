@@ -68,7 +68,7 @@ function buildTable(section) {
       ${sortTh('weekly', 'Weekly %')}
       ${sortTh('monthly', 'Monthly %')}
       ${sortTh('ytd', 'YTD %')}
-      ${sortTh('off52wl', 'Off 52WL')}
+      ${sortTh('off52wl', 'Off 52WL %')}
       ${sortTh('off52wlPrevFri', 'Off 52WL (Prev Fri)')}
     </tr></thead>
     <tbody id="${id}"></tbody>
