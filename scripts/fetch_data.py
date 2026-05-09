@@ -2,8 +2,7 @@
 Fetch daily OHLCV data via Yahoo Finance and compute RS (Price Ratio Relative Strength)
 for all non-SPY tickers vs SPY.
 
-RS line = ticker_close / SPY_close, normalised to the start of the LOOKBACK window (= 0%).
-Positive values → outperforming SPY; negative → underperforming.
+RS line = ticker_close / SPY_close (raw ratio, last LOOKBACK trading days).
 """
 
 import json
@@ -158,10 +157,8 @@ def wilder_atr(df: pd.DataFrame, period: int) -> pd.Series:
 def compute_rs(data: dict) -> tuple[dict, dict]:
     """Return (rs_latest, rs_series).
 
-    rs_series[ticker] = last LOOKBACK values of normalised price-ratio RS (%).
-      RS_ratio_t  = ticker_close_t / SPY_close_t
-      RS_norm_t   = (RS_ratio_t / RS_ratio_window_start - 1) * 100
-    rs_latest[ticker] = the final (most recent) normalised RS value.
+    rs_series[ticker] = last LOOKBACK values of price-ratio RS (ticker/SPY).
+    rs_latest[ticker] = the most recent RS ratio value.
     """
     spy_close = data[BENCHMARK]["adjClose"].dropna()
     results, series = {}, {"dates": []}
@@ -180,10 +177,7 @@ def compute_rs(data: dict) -> tuple[dict, dict]:
         if len(rs_ratio) < 2:
             continue
 
-        base = float(rs_ratio.iloc[0])
-        if base == 0:
-            continue
-        rs_norm = ((rs_ratio / base) - 1) * 100
+        rs_norm = rs_ratio
 
         if not series["dates"]:
             series["dates"] = [d.strftime("%Y-%m-%d") for d in rs_norm.index]
