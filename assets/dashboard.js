@@ -76,20 +76,27 @@ function buildTable(section) {
 }
 
 function buildHistogramSVG(values, isSpy) {
-  const maxAbs = isSpy ? 1 : Math.max(...values.filter(v => v !== null).map(Math.abs), 0.01);
-  const maxVal = isSpy ? 0 : Math.max(...values.filter(v => v !== null));
+  const valid = values.filter(v => v != null && !isNaN(v));
+  if (!valid.length) return '';
+
+  // Normalize bars to the window's own range so relative trend is visible.
+  const minVal = isSpy ? 0 : Math.min(...valid);
+  const maxVal = isSpy ? 0 : Math.max(...valid);
+  const range  = maxVal - minVal || 0.001;
+  const base   = valid[0]; // first value in window — used for colour direction
   const maxIdx = isSpy ? -1 : values.indexOf(maxVal);
 
   const bars = values.map((v, i) => {
     if (v == null || isNaN(v)) return '';
-    const isPos = v >= 0, isMax = i === maxIdx;
-    const barH  = Math.abs(v) / maxAbs * MAX_BAR;
-    const x = i * SLOT_W + 1;
-    const y = isPos ? ZERO_Y - barH : ZERO_Y;
-    const fill = isSpy  ? '#8c959f'
-               : isMax  ? (isPos ? '#2da44e' : '#e5534b')
-                        : (isPos ? '#1a7f37' : '#cf222e');
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v >= 0 ? '+' : ''}${v.toFixed(4)}</title></rect>`;
+    const isMax   = i === maxIdx;
+    const barH    = isSpy ? 0 : ((v - minVal) / range) * MAX_BAR;
+    const x       = (i * SLOT_W + 1).toFixed(1);
+    const y       = (ZERO_Y - barH).toFixed(1);
+    const isUp    = v >= base;
+    const fill    = isSpy  ? '#8c959f'
+                 : isMax   ? (isUp ? '#2da44e' : '#e5534b')
+                           : (isUp ? '#1a7f37' : '#cf222e');
+    return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v.toFixed(4)}</title></rect>`;
   }).join('');
 
   return `<svg viewBox="0 0 ${VB_W} ${VB_H}" preserveAspectRatio="none">
