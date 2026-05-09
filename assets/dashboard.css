@@ -111,6 +111,7 @@ header {
   text-align: center;
 }
 .ticker-table thead th.col-sts,
+.ticker-table thead th.col-chart,
 .ticker-table thead th.col-atr-low { white-space: nowrap; }
 .ticker-table thead th.sortable { cursor: pointer; user-select: none; }
 .ticker-table thead th.sortable:hover { background: #d8dde3; }
