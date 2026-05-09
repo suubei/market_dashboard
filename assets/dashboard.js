@@ -42,7 +42,7 @@ function percentRank(values, val) {
 
 const N_BARS = 25;
 const VB_W = 200, VB_H = 48;
-const ZERO_Y = VB_H / 2, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS, BAR_W = SLOT_W - 2;
+const ZERO_Y = VB_H - 4, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS, BAR_W = SLOT_W - 2;
 
 function buildTable(section) {
   const id = `${section.id}-body`;

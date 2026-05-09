@@ -55,14 +55,14 @@ def _tickers_from_config(path: str) -> list[str]:
 
 def load_config() -> list[str]:
     """Return all unique tickers across all config files."""
-    seen, tickers = set(), []
-    for t in _tickers_from_config(CONFIG_PATH):
-        seen.add(t); tickers.append(t)
+    tickers = _tickers_from_config(CONFIG_PATH)
+    seen = set(tickers)
     for cfg_path, _ in EXTRA_CONFIGS:
         if os.path.exists(cfg_path):
             for t in _tickers_from_config(cfg_path):
                 if t not in seen:
-                    seen.add(t); tickers.append(t)
+                    seen.add(t)
+                    tickers.append(t)
     if BENCHMARK not in seen:
         tickers.insert(0, BENCHMARK)
     return tickers
@@ -120,14 +120,14 @@ def fetch_yahoo(tickers: list[str], start: date, end: date) -> dict[str, pd.Data
     result = {}
     if len(tickers) == 1:
         ticker = tickers[0]
-        df = raw[["Open", "High", "Low", "Close"]].copy()
-        df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
+        df = raw[["Open", "Close"]].copy()
+        df.columns = ["adjOpen", "adjClose"]
         result[ticker] = df.dropna()
     else:
         for ticker in tickers:
             try:
-                df = raw.xs(ticker, level=1, axis=1)[["Open", "High", "Low", "Close"]].copy()
-                df.columns = ["adjOpen", "adjHigh", "adjLow", "adjClose"]
+                df = raw.xs(ticker, level=1, axis=1)[["Open", "Close"]].copy()
+                df.columns = ["adjOpen", "adjClose"]
                 df = df.dropna()
                 if df.empty:
                     log.warning("  No data for %s", ticker)
