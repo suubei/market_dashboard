@@ -236,6 +236,11 @@ function renderSection(displayOrder, tbodyId) {
       }))]),
     );
 
+    // Default sort: group tables by Off 52WL Prev Fri descending
+    ['group-ew-body', 'group-cw-body'].forEach(id => {
+      if (id in TBODY_TO_ORDER) sortState[id] = { col: 'off52wlPrevFri', dir: -1 };
+    });
+
     Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id));
     updateSortArrows();
 
@@ -246,28 +251,8 @@ function renderSection(displayOrder, tbodyId) {
         sortState[tbodyId] = cur?.col === col ? { col, dir: -cur.dir } : { col, dir: -1 };
         renderSection(TBODY_TO_ORDER[tbodyId], tbodyId);
         updateSortArrows();
-        syncBtns(TBODY_TO_ORDER);
       });
     });
-
-    function applyGlobalSort(col, btn) {
-      const isActive = btn.classList.contains('active');
-      Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => {
-        if (isActive) delete sortState[id];
-        else sortState[id] = { col, dir: 1 };
-        renderSection(order, id);
-      });
-      updateSortArrows();
-      syncBtns(TBODY_TO_ORDER);
-    }
-
-    function syncBtns(tbodyMap) {
-      const ids = Object.keys(tbodyMap);
-      btnWL.classList.toggle('active', ids.every(id => sortState[id]?.col === 'off52wlPrevFri' && sortState[id]?.dir === 1));
-    }
-
-    const btnWL = document.getElementById('btn-wl-prev-fri');
-    btnWL.addEventListener('click', () => applyGlobalSort('off52wlPrevFri', btnWL));
 
   } catch (err) {
     showStatus('数据加载失败：' + err.message, true);

@@ -23,10 +23,6 @@ header {
   max-width: 1445px;
   margin: 0 auto 28px;
   padding-bottom: 16px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
 }
 #header-left h1 { font-size: 1.25rem; font-weight: 600; }
 #meta {
@@ -39,28 +35,6 @@ header {
 }
 #meta b { color: var(--text); }
 
-#header-btns {
-  flex-shrink: 0;
-  margin-top: 2px;
-  display: flex;
-  gap: 6px;
-}
-.sort-btn {
-  padding: 5px 12px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-  transition: background 0.1s, color 0.1s;
-}
-.sort-btn:hover { background: #d8dde3; color: var(--text); }
-.sort-btn.active { background: #0969da; border-color: #0969da; color: #fff; }
 
 #status {
   max-width: 1445px;
