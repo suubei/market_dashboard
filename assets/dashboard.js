@@ -83,19 +83,13 @@ function buildHistogramSVG(values, isSpy) {
   const minVal = isSpy ? 0 : Math.min(...valid);
   const maxVal = isSpy ? 0 : Math.max(...valid);
   const range  = maxVal - minVal || 0.001;
-  const base   = valid[0]; // first value in window — used for colour direction
-  const maxIdx = isSpy ? -1 : values.indexOf(maxVal);
 
   const bars = values.map((v, i) => {
     if (v == null || isNaN(v)) return '';
-    const isMax   = i === maxIdx;
-    const barH    = isSpy ? 0 : ((v - minVal) / range) * MAX_BAR;
-    const x       = (i * SLOT_W + 1).toFixed(1);
-    const y       = (ZERO_Y - barH).toFixed(1);
-    const isUp    = v >= base;
-    const fill    = isSpy  ? '#8c959f'
-                 : isMax   ? (isUp ? '#2da44e' : '#e5534b')
-                           : (isUp ? '#1a7f37' : '#cf222e');
+    const barH = isSpy ? 0 : ((v - minVal) / range) * MAX_BAR;
+    const x    = (i * SLOT_W + 1).toFixed(1);
+    const y    = (ZERO_Y - barH).toFixed(1);
+    const fill = isSpy ? '#8c959f' : '#1a7f37';
     return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v.toFixed(4)}</title></rect>`;
   }).join('');
 
