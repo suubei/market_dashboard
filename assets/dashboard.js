@@ -254,7 +254,7 @@ function renderSection(displayOrder, tbodyId) {
       const isActive = btn.classList.contains('active');
       Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => {
         if (isActive) delete sortState[id];
-        else sortState[id] = { col, dir: -1 };
+        else sortState[id] = { col, dir: 1 };
         renderSection(order, id);
       });
       updateSortArrows();
@@ -263,7 +263,7 @@ function renderSection(displayOrder, tbodyId) {
 
     function syncBtns(tbodyMap) {
       const ids = Object.keys(tbodyMap);
-      btnWL.classList.toggle('active', ids.every(id => sortState[id]?.col === 'off52wlPrevFri' && sortState[id]?.dir === -1));
+      btnWL.classList.toggle('active', ids.every(id => sortState[id]?.col === 'off52wlPrevFri' && sortState[id]?.dir === 1));
     }
 
     const btnWL = document.getElementById('btn-wl-prev-fri');
