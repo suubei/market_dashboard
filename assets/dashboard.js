@@ -42,7 +42,8 @@ function percentRank(values, val) {
 
 const N_BARS = 25;
 const VB_W = 200, VB_H = 48;
-const ZERO_Y = VB_H - 4, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS, BAR_W = SLOT_W - 1;
+const ZERO_Y = VB_H - 4, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS;
+const BAR_GAP = 0.35, BAR_W = SLOT_W - BAR_GAP;
 
 function buildTable(section) {
   const id = `${section.id}-body`;
@@ -87,7 +88,7 @@ function buildHistogramSVG(values, isSpy) {
   const bars = values.map((v, i) => {
     if (v == null || isNaN(v)) return '';
     const barH = isSpy ? 0 : ((v - minVal) / range) * MAX_BAR;
-    const x    = (i * SLOT_W + 1).toFixed(1);
+    const x    = (i * SLOT_W + BAR_GAP / 2).toFixed(1);
     const y    = (ZERO_Y - barH).toFixed(1);
     const fill = isSpy ? '#8c959f' : '#1a7f37';
     return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v.toFixed(4)}</title></rect>`;
