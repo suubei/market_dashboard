@@ -43,7 +43,7 @@ function percentRank(values, val) {
 const N_BARS = 25;
 const VB_W = 200, VB_H = 48;
 const ZERO_Y = VB_H - 4, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS;
-const BAR_GAP = 0.35, BAR_W = SLOT_W - BAR_GAP;
+const BAR_GAP = 0.15, BAR_W = SLOT_W - BAR_GAP;
 
 function buildTable(section) {
   const id = `${section.id}-body`;
