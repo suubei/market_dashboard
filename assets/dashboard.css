@@ -113,7 +113,15 @@ header {
 }
 
 .market-cell { text-align: left; white-space: nowrap; overflow: hidden; }
-.index-cell  { text-align: center; color: var(--muted); font-size: 0.85rem; }
+.index-cell  {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  user-select: none;
+  cursor: pointer;
+}
+.ticker-row.sym-selected { background: #dbeafe !important; }
+.ticker-row.sym-selected td.index-cell { color: #1d4ed8; font-weight: 700; }
 .ticker-symbol { font-size: 0.88rem; font-weight: 700; }
 
 .rs-cell, .chart-cell { line-height: 0; }

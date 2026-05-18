@@ -9,6 +9,32 @@ function showStatus(msg, isError = false) {
   el.classList.toggle('error', isError);
 }
 
+function flashStatus(msg, ms = 2200) {
+  showStatus(msg, false);
+  const el = document.getElementById('status');
+  el.classList.remove('error');
+  setTimeout(() => { el.style.display = 'none'; }, ms);
+}
+
+async function copyToClipboard(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    if (!document.execCommand('copy')) throw new Error('execCommand copy failed');
+  } finally {
+    document.body.removeChild(ta);
+  }
+}
+
 function toBeiJing(isoStr) {
   if (!isoStr) return '—';
   return new Date(isoStr).toLocaleString('zh-CN', {
@@ -60,7 +86,7 @@ function buildTable(section) {
     </colgroup>
     <thead><tr>
       <th class="col-market">${section.label}</th>
-      <th class="col-index">Symbol</th>
+      <th class="col-index" title="点击选中行；Shift+点击选范围；自动复制；Esc 清除">Symbol</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-chart">1-Month Chart</th>
       ${sortTh('sts', 'RS_STS%')}
@@ -244,6 +270,65 @@ function renderSection(displayOrder, tbodyId) {
 
     Object.entries(TBODY_TO_ORDER).forEach(([id, order]) => renderSection(order, id));
     updateSortArrows();
+
+    // --- Range selection on Symbol column ---
+    // lastAnchor: { tbody, rowIndex } — the last single-clicked row (anchor for shift-range)
+    let lastAnchor = null;
+
+    function getIndexCells(tbody) {
+      return [...tbody.querySelectorAll('tr.ticker-row td.index-cell')];
+    }
+
+    function clearSelection() {
+      document.querySelectorAll('tr.ticker-row.sym-selected')
+        .forEach(r => r.classList.remove('sym-selected'));
+      lastAnchor = null;
+    }
+
+    async function copySelected() {
+      const rows = [...document.querySelectorAll('tr.ticker-row.sym-selected')];
+      if (!rows.length) return;
+      const text = rows.map(r => r.querySelector('td.index-cell')?.textContent.trim()).filter(Boolean).join('\n');
+      try {
+        await copyToClipboard(text);
+        flashStatus(`已复制 ${rows.length} 个 ticker`);
+      } catch {
+        showStatus('复制失败：请使用 https 或 localhost，或检查浏览器权限', true);
+      }
+    }
+
+    const dash = document.getElementById('dashboard');
+
+    dash.addEventListener('click', async e => {
+      const td = e.target.closest('td.index-cell');
+      if (!td) return;
+      e.preventDefault();
+
+      const tbody = td.closest('tbody');
+      const row   = td.closest('tr.ticker-row');
+      const cells = getIndexCells(tbody);
+      const clickedIdx = cells.indexOf(td);
+
+      if (e.shiftKey && lastAnchor && lastAnchor.tbody === tbody) {
+        // extend range from anchor to current row within the same tbody
+        const anchorIdx = lastAnchor.rowIndex;
+        const lo = Math.min(anchorIdx, clickedIdx);
+        const hi = Math.max(anchorIdx, clickedIdx);
+        cells.forEach((c, i) => c.closest('tr').classList.toggle('sym-selected', i >= lo && i <= hi));
+      } else {
+        // toggle single row; set new anchor
+        const wasSelected = row.classList.contains('sym-selected');
+        clearSelection();
+        if (!wasSelected) row.classList.add('sym-selected');
+        lastAnchor = wasSelected ? null : { tbody, rowIndex: clickedIdx };
+      }
+
+      await copySelected();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') clearSelection();
+    });
 
     document.querySelectorAll('th.sortable').forEach(th => {
       th.addEventListener('click', () => {
