@@ -53,15 +53,15 @@ function buildTable(section) {
     `<th class="${colClass[col]} sortable" data-sort="${col}" data-tbody="${id}">${label}<span class="sort-arrow"></span></th>`;
   return `<table class="ticker-table">
     <colgroup>
-      <col class="col-market"><col class="col-index">
+      <col class="col-index"><col class="col-market">
       <col class="col-rs"><col class="col-chart"><col class="col-sts">
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly"><col class="col-monthly"><col class="col-ytd">
       <col class="col-atr-low"><col class="col-atr-wkchg">
     </colgroup>
     <thead><tr>
-      <th class="col-market">${section.label}</th>
       <th class="col-index">Symbol</th>
+      <th class="col-market">${section.label}</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-chart">1-Month Chart</th>
       ${sortTh('sts', 'RS_STS%')}
@@ -187,8 +187,8 @@ function renderSection(displayOrder, tbodyId) {
     const off52wlFri = m?.off_52wl_prev_fri ?? null;
 
     return `<tr class="ticker-row">
-      <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="index-cell">${ticker}</td>
+      <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="chart-cell">${buildLineChartSVG(_priceSeries[ticker])}</td>
       <td class="sts-cell">${stsHtml}</td>
