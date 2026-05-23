@@ -60,31 +60,6 @@
       ]
     },
     {
-      "id": "group-ew",
-      "label": "EW Group",
-      "rows": [
-        { "ticker": "XSD", "label": "Semiconductors (Equal Weight)" },
-        { "ticker": "GXC", "label": "China" },
-        { "ticker": "XHS", "label": "Health Care Services" },
-        { "ticker": "XBI", "label": "Biotech" },
-        { "ticker": "XHB", "label": "Homebuilders" },
-        { "ticker": "KIE", "label": "Insurance" },
-        { "ticker": "XHE", "label": "Healthcare Equipment" },
-        { "ticker": "KRE", "label": "Regional Banks" },
-        { "ticker": "XTN", "label": "Transportation" },
-        { "ticker": "XAR", "label": "Aerospace & Defence" },
-        { "ticker": "KBE", "label": "US Banks" },
-        { "ticker": "XOP", "label": "Oil & Gas E&P" },
-        { "ticker": "XPH", "label": "Pharmaceuticals" },
-        { "ticker": "XME", "label": "Metal & Mining" },
-        { "ticker": "GNR", "label": "Natural Resources" },
-        { "ticker": "XRT", "label": "Retail" },
-        { "ticker": "XSW", "label": "Software & Services" },
-        { "ticker": "XES", "label": "Oil & Gas Equipment & Services" },
-        { "ticker": "XTL", "label": "Telecom" }
-      ]
-    },
-    {
       "id": "group-cw",
       "label": "CW Group",
       "rows": [
@@ -209,7 +184,8 @@
         { "ticker": "NLR",   "label": "Nuclear Power" },
         { "ticker": "PAVE",  "label": "U.S. Infrastructure" },
         { "ticker": "EATZ",  "label": "Global Restaurant Industry" },
-        { "ticker": "TLT",   "label": "20+ Year Treasury Bonds" }
+        { "ticker": "TLT",   "label": "20+ Year Treasury Bonds" },
+        { "ticker": "VCX",   "label": "Private AI & Tech" }
       ]
     }
   ]
