@@ -60,8 +60,8 @@
       ]
     },
     {
-      "id": "group-cw",
-      "label": "CW Group",
+      "id": "group",
+      "label": "Industry Group",
       "rows": [
         { "ticker": "CIBR",  "label": "Cybersecurity" },
         { "ticker": "NASA",  "label": "Space Economy" },

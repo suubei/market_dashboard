@@ -239,7 +239,7 @@ function renderSection(displayOrder, tbodyId) {
     );
 
     // Default sort: group tables by Off 52WL Prev Fri descending
-    ['group-ew-body', 'group-cw-body'].forEach(id => {
+    ['group-ew-body', 'group-body'].forEach(id => {
       if (id in TBODY_TO_ORDER) sortState[id] = { col: 'off52wlPrevFri', dir: -1 };
     });
 
