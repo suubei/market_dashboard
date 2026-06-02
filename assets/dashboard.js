@@ -91,7 +91,7 @@ function buildHistogramSVG(values, isSpy) {
     const barH = isSpy ? 0 : ((v - minVal) / range) * MAX_BAR;
     const x    = (i * SLOT_W + BAR_GAP / 2).toFixed(1);
     const y    = (ZERO_Y - barH).toFixed(1);
-    const fill = isSpy ? '#8c959f' : '#1a7f37';
+    const fill = isSpy ? '#8c959f' : (v === maxVal ? '#1a7f37' : '#93c5a8');
     return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v.toFixed(4)}</title></rect>`;
   }).join('');
 
