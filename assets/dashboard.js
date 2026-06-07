@@ -41,7 +41,7 @@ function percentRank(values, val) {
   return valid.filter(v => v < val).length / (valid.length - 1);
 }
 
-const N_BARS = 25;
+const N_BARS = 25, N_BARS_1W = 5;
 const VB_W = 200, VB_H = 48;
 const ZERO_Y = VB_H - 4, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS;
 const BAR_GAP = 0.15, BAR_W = SLOT_W - BAR_GAP;
@@ -54,7 +54,7 @@ function buildTable(section) {
   return `<table class="ticker-table">
     <colgroup>
       <col class="col-index"><col class="col-market">
-      <col class="col-rs"><col class="col-chart"><col class="col-sts">
+      <col class="col-rs-1w"><col class="col-rs"><col class="col-chart"><col class="col-sts">
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly"><col class="col-monthly"><col class="col-ytd">
       <col class="col-atr-low"><col class="col-atr-wkchg">
@@ -62,6 +62,7 @@ function buildTable(section) {
     <thead><tr>
       <th class="col-index">Symbol</th>
       <th class="col-market">${section.label}</th>
+      <th class="col-rs-1w">1-Week RS</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-chart">1-Month Chart</th>
       ${sortTh('sts', 'RS_STS%')}
@@ -77,22 +78,24 @@ function buildTable(section) {
   </table>`;
 }
 
-function buildHistogramSVG(values, isSpy) {
+function buildHistogramSVG(values, isSpy, nBars = N_BARS) {
   const valid = values.filter(v => v != null && !isNaN(v));
   if (!valid.length) return '';
 
-  // Normalize bars to the window's own range so relative trend is visible.
   const minVal = isSpy ? 0 : Math.min(...valid);
   const maxVal = isSpy ? 0 : Math.max(...valid);
   const range  = maxVal - minVal || 0.001;
 
+  const slotW = VB_W / nBars;
+  const barW  = slotW - BAR_GAP;
+
   const bars = values.map((v, i) => {
     if (v == null || isNaN(v)) return '';
     const barH = isSpy ? 0 : ((v - minVal) / range) * MAX_BAR;
-    const x    = (i * SLOT_W + BAR_GAP / 2).toFixed(1);
+    const x    = (i * slotW + BAR_GAP / 2).toFixed(1);
     const y    = (ZERO_Y - barH).toFixed(1);
     const fill = isSpy ? '#8c959f' : (v === maxVal ? '#1a7f37' : '#93c5a8');
-    return `<rect x="${x}" y="${y}" width="${BAR_W}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v.toFixed(4)}</title></rect>`;
+    return `<rect x="${x}" y="${y}" width="${barW.toFixed(2)}" height="${Math.max(barH, 0.5).toFixed(1)}" fill="${fill}"><title>${v.toFixed(4)}</title></rect>`;
   }).join('');
 
   return `<svg viewBox="0 0 ${VB_W} ${VB_H}" preserveAspectRatio="none">
@@ -118,7 +121,7 @@ function buildLineChartSVG(values) {
 }
 
 const sortState = {};
-let _series = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _wlMetrics = {};
+let _series = {}, _series1w = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _wlMetrics = {};
 
 function getSortValue(ticker, col) {
   switch (col) {
@@ -168,8 +171,9 @@ function renderSection(displayOrder, tbodyId) {
   const maxAbsOff52wl = maxAbs(order.map(({ ticker }) => _wlMetrics?.[ticker]?.off_52wl ?? null).filter(v => v != null));
 
   document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
-    const isSpy  = ticker === 'SPY';
-    const values = (isSpy ? Array(N_BARS).fill(0) : (_series[ticker] ?? [])).slice(-N_BARS);
+    const isSpy   = ticker === 'SPY';
+    const values  = (isSpy ? Array(N_BARS).fill(0)    : (_series[ticker]   ?? [])).slice(-N_BARS);
+    const values1w = (isSpy ? Array(N_BARS_1W).fill(0) : (_series1w[ticker] ?? [])).slice(-N_BARS_1W);
 
     let stsHtml = '<span class="num-value">—</span>';
     if (!isSpy && values.length) {
@@ -189,6 +193,7 @@ function renderSection(displayOrder, tbodyId) {
     return `<tr class="ticker-row">
       <td class="index-cell">${ticker}</td>
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
+      <td class="rs-cell">${buildHistogramSVG(values1w, isSpy, N_BARS_1W)}</td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="chart-cell">${buildLineChartSVG(_priceSeries[ticker])}</td>
       <td class="sts-cell">${stsHtml}</td>
@@ -223,6 +228,7 @@ function renderSection(displayOrder, tbodyId) {
     document.getElementById('dashboard').style.display = 'block';
 
     _series      = latest.rs_series       ?? {};
+    _series1w    = latest.rs_series_1w    ?? {};
     _priceSeries = latest.price_series    ?? {};
     _changes     = latest.daily_change    ?? {};
     _weekly      = latest.weekly_change   ?? {};
