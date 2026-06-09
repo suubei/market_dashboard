@@ -125,13 +125,13 @@ let _series = {}, _series1w = {}, _priceSeries = {}, _changes = {}, _weekly = {}
 
 function rs1wPct(ticker) {
   const v = (_series1w[ticker] ?? []).filter(x => x != null && !isNaN(x));
-  if (v.length < 2 || v[0] === 0) return null;
-  return (v[v.length - 1] - v[0]) / v[0] * 100;
+  if (v.length < 2) return null;
+  return percentRank(v, v[v.length - 1]);
 }
 
 function getSortValue(ticker, col) {
   switch (col) {
-    case 'rs1w':          return rs1wPct(ticker)                            ?? -Infinity;
+    case 'rs1w':          return rs1wPct(ticker)                             ?? -Infinity;
     case 'sts': {
       const vals = (_series[ticker] ?? []).slice(-N_BARS);
       if (!vals.length) return -Infinity;
@@ -176,18 +176,20 @@ function renderSection(displayOrder, tbodyId) {
   const maxAbsMonthly = maxAbs(vals(_monthly));
   const maxAbsYtd     = maxAbs(vals(_ytd));
   const maxAbsOff52wl = maxAbs(order.map(({ ticker }) => _wlMetrics?.[ticker]?.off_52wl ?? null).filter(v => v != null));
-  const maxAbsRs1w    = maxAbs(order.map(({ ticker }) => rs1wPct(ticker)).filter(v => v != null));
-
   document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
     const isSpy   = ticker === 'SPY';
     const values  = (isSpy ? Array(N_BARS).fill(0) : (_series[ticker] ?? [])).slice(-N_BARS);
-    const rs1w    = isSpy ? null : rs1wPct(ticker);
 
     let stsHtml = '<span class="num-value">—</span>';
     if (!isSpy && values.length) {
       const pr = percentRank(values, values[values.length - 1]);
       if (pr !== null) stsHtml = `<span class="num-value">${Math.round(pr * 100)}%</span>`;
     }
+
+    const rs1w    = isSpy ? null : rs1wPct(ticker);
+    const rs1wHtml = rs1w !== null
+      ? `<span class="num-value">${Math.round(rs1w * 100)}%</span>`
+      : '<span class="num-value">—</span>';
 
     const intra      = _intraday[ticker] ?? null;
     const chg        = _changes[ticker]  ?? null;
@@ -203,7 +205,7 @@ function renderSection(displayOrder, tbodyId) {
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="chart-cell">${buildLineChartSVG(_priceSeries[ticker])}</td>
-      <td class="chg-cell" style="${intraBg(rs1w, maxAbsRs1w)}"><span class="chg-text">${pctText(rs1w)}</span></td>
+      <td class="sts-cell">${rs1wHtml}</td>
       <td class="sts-cell">${stsHtml}</td>
       <td class="chg-cell" style="${intraBg(intra, maxAbsIntra)}"><span class="chg-text">${pctText(intra)}</span></td>
       <td class="chg-cell" style="${intraBg(chg, maxAbsChg)}"><span class="chg-text">${pctText(chg)}</span></td>
