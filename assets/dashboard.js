@@ -48,13 +48,13 @@ const BAR_GAP = 0.15, BAR_W = SLOT_W - BAR_GAP;
 
 function buildTable(section) {
   const id = `${section.id}-body`;
-  const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', monthly: 'col-monthly', ytd: 'col-ytd', off52wl: 'col-atr-low', off52wlPrevFri: 'col-atr-wkchg' };
+  const colClass = { rs1w: 'col-rs-1w', sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', monthly: 'col-monthly', ytd: 'col-ytd', off52wl: 'col-atr-low', off52wlPrevFri: 'col-atr-wkchg' };
   const sortTh = (col, label) =>
     `<th class="${colClass[col]} sortable" data-sort="${col}" data-tbody="${id}">${label}<span class="sort-arrow"></span></th>`;
   return `<table class="ticker-table">
     <colgroup>
       <col class="col-index"><col class="col-market">
-      <col class="col-rs-1w"><col class="col-rs"><col class="col-chart"><col class="col-sts">
+      <col class="col-rs"><col class="col-chart"><col class="col-rs-1w"><col class="col-sts">
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly"><col class="col-monthly"><col class="col-ytd">
       <col class="col-atr-low"><col class="col-atr-wkchg">
@@ -62,10 +62,10 @@ function buildTable(section) {
     <thead><tr>
       <th class="col-index">Symbol</th>
       <th class="col-market">${section.label}</th>
-      <th class="col-rs-1w">1-Week RS</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-chart">1-Month Chart</th>
-      ${sortTh('sts', 'RS_STS%')}
+      ${sortTh('rs1w', '1-Week RS%')}
+      ${sortTh('sts', '1-Month RS%')}
       ${sortTh('intraday', 'Intraday %')}
       ${sortTh('chg', 'Daily %')}
       ${sortTh('weekly', 'Weekly %')}
@@ -123,8 +123,15 @@ function buildLineChartSVG(values) {
 const sortState = {};
 let _series = {}, _series1w = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _wlMetrics = {};
 
+function rs1wPct(ticker) {
+  const v = (_series1w[ticker] ?? []).filter(x => x != null && !isNaN(x));
+  if (v.length < 2 || v[0] === 0) return null;
+  return (v[v.length - 1] - v[0]) / v[0] * 100;
+}
+
 function getSortValue(ticker, col) {
   switch (col) {
+    case 'rs1w':          return rs1wPct(ticker)                            ?? -Infinity;
     case 'sts': {
       const vals = (_series[ticker] ?? []).slice(-N_BARS);
       if (!vals.length) return -Infinity;
@@ -169,11 +176,12 @@ function renderSection(displayOrder, tbodyId) {
   const maxAbsMonthly = maxAbs(vals(_monthly));
   const maxAbsYtd     = maxAbs(vals(_ytd));
   const maxAbsOff52wl = maxAbs(order.map(({ ticker }) => _wlMetrics?.[ticker]?.off_52wl ?? null).filter(v => v != null));
+  const maxAbsRs1w    = maxAbs(order.map(({ ticker }) => rs1wPct(ticker)).filter(v => v != null));
 
   document.getElementById(tbodyId).innerHTML = order.map(({ ticker, market }) => {
     const isSpy   = ticker === 'SPY';
-    const values  = (isSpy ? Array(N_BARS).fill(0)    : (_series[ticker]   ?? [])).slice(-N_BARS);
-    const values1w = (isSpy ? Array(N_BARS_1W).fill(0) : (_series1w[ticker] ?? [])).slice(-N_BARS_1W);
+    const values  = (isSpy ? Array(N_BARS).fill(0) : (_series[ticker] ?? [])).slice(-N_BARS);
+    const rs1w    = isSpy ? null : rs1wPct(ticker);
 
     let stsHtml = '<span class="num-value">—</span>';
     if (!isSpy && values.length) {
@@ -193,9 +201,9 @@ function renderSection(displayOrder, tbodyId) {
     return `<tr class="ticker-row">
       <td class="index-cell">${ticker}</td>
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
-      <td class="rs-cell">${buildHistogramSVG(values1w, isSpy, N_BARS_1W)}</td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="chart-cell">${buildLineChartSVG(_priceSeries[ticker])}</td>
+      <td class="chg-cell" style="${intraBg(rs1w, maxAbsRs1w)}"><span class="chg-text">${pctText(rs1w)}</span></td>
       <td class="sts-cell">${stsHtml}</td>
       <td class="chg-cell" style="${intraBg(intra, maxAbsIntra)}"><span class="chg-text">${pctText(intra)}</span></td>
       <td class="chg-cell" style="${intraBg(chg, maxAbsChg)}"><span class="chg-text">${pctText(chg)}</span></td>
