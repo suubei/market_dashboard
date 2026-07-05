@@ -41,20 +41,20 @@ function percentRank(values, val) {
   return valid.filter(v => v < val).length / (valid.length - 1);
 }
 
-const N_BARS = 25, N_BARS_1W = 5;
+const N_BARS = 25;
 const VB_W = 200, VB_H = 48;
 const ZERO_Y = VB_H - 4, MAX_BAR = ZERO_Y - 3, SLOT_W = VB_W / N_BARS;
 const BAR_GAP = 0.15, BAR_W = SLOT_W - BAR_GAP;
 
 function buildTable(section) {
   const id = `${section.id}-body`;
-  const colClass = { rs1w: 'col-rs-1w', sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', monthly: 'col-monthly', ytd: 'col-ytd', off52wl: 'col-atr-low', off52wlPrevFri: 'col-atr-wkchg' };
+  const colClass = { sts: 'col-sts', intraday: 'col-intraday', chg: 'col-chg', weekly: 'col-weekly', monthly: 'col-monthly', ytd: 'col-ytd', off52wl: 'col-atr-low', off52wlPrevFri: 'col-atr-wkchg' };
   const sortTh = (col, label) =>
     `<th class="${colClass[col]} sortable" data-sort="${col}" data-tbody="${id}">${label}<span class="sort-arrow"></span></th>`;
   return `<table class="ticker-table">
     <colgroup>
       <col class="col-index"><col class="col-market">
-      <col class="col-rs"><col class="col-chart"><col class="col-rs-1w"><col class="col-sts">
+      <col class="col-rs"><col class="col-chart"><col class="col-sts">
       <col class="col-intraday"><col class="col-chg">
       <col class="col-weekly"><col class="col-monthly"><col class="col-ytd">
       <col class="col-atr-low"><col class="col-atr-wkchg">
@@ -64,7 +64,6 @@ function buildTable(section) {
       <th class="col-market">${section.label}</th>
       <th class="col-rs">1-Month RS</th>
       <th class="col-chart">1-Month Chart</th>
-      ${sortTh('rs1w', '1-Week RS%')}
       ${sortTh('sts', '1-Month RS%')}
       ${sortTh('intraday', 'Intraday %')}
       ${sortTh('chg', 'Daily %')}
@@ -121,17 +120,10 @@ function buildLineChartSVG(values) {
 }
 
 const sortState = {};
-let _series = {}, _series1w = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _wlMetrics = {};
-
-function rs1wPct(ticker) {
-  const v = (_series1w[ticker] ?? []).filter(x => x != null && !isNaN(x));
-  if (v.length < 2) return null;
-  return percentRank(v, v[v.length - 1]);
-}
+let _series = {}, _priceSeries = {}, _changes = {}, _weekly = {}, _monthly = {}, _ytd = {}, _intraday = {}, _wlMetrics = {};
 
 function getSortValue(ticker, col) {
   switch (col) {
-    case 'rs1w':          return rs1wPct(ticker)                             ?? -Infinity;
     case 'sts': {
       const vals = (_series[ticker] ?? []).slice(-N_BARS);
       if (!vals.length) return -Infinity;
@@ -186,11 +178,6 @@ function renderSection(displayOrder, tbodyId) {
       if (pr !== null) stsHtml = `<span class="num-value">${Math.round(pr * 100)}%</span>`;
     }
 
-    const rs1w    = isSpy ? null : rs1wPct(ticker);
-    const rs1wHtml = rs1w !== null
-      ? `<span class="num-value">${Math.round(rs1w * 100)}%</span>`
-      : '<span class="num-value">—</span>';
-
     const intra      = _intraday[ticker] ?? null;
     const chg        = _changes[ticker]  ?? null;
     const wkly       = _weekly[ticker]   ?? null;
@@ -205,7 +192,6 @@ function renderSection(displayOrder, tbodyId) {
       <td class="market-cell"><span class="ticker-symbol">${market}</span></td>
       <td class="rs-cell">${buildHistogramSVG(values, isSpy)}</td>
       <td class="chart-cell">${buildLineChartSVG(_priceSeries[ticker])}</td>
-      <td class="sts-cell">${rs1wHtml}</td>
       <td class="sts-cell">${stsHtml}</td>
       <td class="chg-cell" style="${intraBg(intra, maxAbsIntra)}"><span class="chg-text">${pctText(intra)}</span></td>
       <td class="chg-cell" style="${intraBg(chg, maxAbsChg)}"><span class="chg-text">${pctText(chg)}</span></td>
@@ -238,7 +224,6 @@ function renderSection(displayOrder, tbodyId) {
     document.getElementById('dashboard').style.display = 'block';
 
     _series      = latest.rs_series       ?? {};
-    _series1w    = latest.rs_series_1w    ?? {};
     _priceSeries = latest.price_series    ?? {};
     _changes     = latest.daily_change    ?? {};
     _weekly      = latest.weekly_change   ?? {};

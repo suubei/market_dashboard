@@ -188,16 +188,6 @@ def compute_daily_changes(data: dict) -> dict:
     return changes
 
 
-def compute_rs_series_weekly(rs_series: dict, n: int = 5) -> dict:
-    """Return last n values of rs_series for the 1-week RS histogram."""
-    out: dict = {"dates": rs_series.get("dates", [])[-n:]}
-    for ticker, vals in rs_series.items():
-        if ticker == "dates":
-            continue
-        out[ticker] = vals[-n:]
-    return out
-
-
 def compute_price_series(data: dict, n: int = 21) -> dict:
     """Return {ticker: [last n adjClose prices]} for the 1-month line chart."""
     out = {}
@@ -341,7 +331,6 @@ def main() -> None:
     metrics = {
         "rs":              rs_latest,
         "rs_series":       rs_series,
-        "rs_series_1w":    compute_rs_series_weekly(rs_series),
         "price_series":    compute_price_series(data),
         "daily_change":    compute_daily_changes(data),
         "weekly_change":   compute_weekly_changes(data, last_day),
